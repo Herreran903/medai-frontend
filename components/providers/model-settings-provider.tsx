@@ -1,0 +1,22 @@
+"use client";
+
+import React, { createContext, useContext, useState } from "react";
+
+export type ModelSettings = {
+  model: string;
+  threshold: number;
+};
+
+const DEFAULTS: ModelSettings = { model: "spanish-med-ner", threshold: 0.5 };
+
+const Ctx = createContext<{
+  settings: ModelSettings;
+  setSettings: (s: ModelSettings) => void;
+}>({ settings: DEFAULTS, setSettings: () => {} });
+
+export const ModelSettingsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [settings, setSettings] = useState<ModelSettings>(DEFAULTS);
+  return <Ctx.Provider value={{ settings, setSettings }}>{children}</Ctx.Provider>;
+};
+
+export const useModelSettings = () => useContext(Ctx);
