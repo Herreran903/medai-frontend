@@ -1,13 +1,11 @@
-export const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
+import { http } from "./http";
 
 export async function extractEntities(formData: FormData) {
-  const r = await fetch("/api/extract", { method: "POST", body: formData });
-  if (!r.ok) throw new Error("Error en extracción");
-  return r.json();
+  const { data } = await http.post("/extract", formData);
+  return data;
 }
 
 export async function extractEntitiesBatch(formData: FormData) {
-  const r = await fetch("/api/extract-batch", { method: "POST", body: formData });
-  if (!r.ok) throw new Error("Error en extracción por lotes");
-  return r.json();
+  const { data } = await http.post("/extract-batch", formData);
+  return data;
 }

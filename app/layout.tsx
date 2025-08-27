@@ -5,6 +5,7 @@ import "./globals.css";
 import { ConfigProvider, theme as antdTheme } from "antd";
 import esES from "antd/locale/es_ES";
 import { ModelSettingsProvider } from "@/components/providers/model-settings-provider";
+import { ResultProvider } from "@/components/providers/result-provider";
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
@@ -18,7 +19,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="es">
-      <body className={`${geistSans.variable} ${geistMono.variable}`}>
+      <body className={`${geistSans.variable} ${geistMono.variable} bg-gray-50`}>
         <ConfigProvider
           locale={esES}
           theme={{
@@ -55,7 +56,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             },
           }}
         >
-          <ModelSettingsProvider>{children}</ModelSettingsProvider>
+          <ModelSettingsProvider>
+            <ResultProvider>{children}</ResultProvider>
+          </ModelSettingsProvider>
         </ConfigProvider>
       </body>
     </html>

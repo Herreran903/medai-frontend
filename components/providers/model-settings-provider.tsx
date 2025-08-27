@@ -4,10 +4,9 @@ import React, { createContext, useContext, useState } from "react";
 
 export type ModelSettings = {
   model: string;
-  threshold: number;
 };
 
-const DEFAULTS: ModelSettings = { model: "spanish-med-ner", threshold: 0.5 };
+const DEFAULTS: ModelSettings = { model: "transformer" };
 
 const Ctx = createContext<{
   settings: ModelSettings;

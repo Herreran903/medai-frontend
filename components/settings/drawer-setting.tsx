@@ -4,9 +4,9 @@ import { Form, InputNumber, Select, Button, Space, Typography } from "antd";
 import { useModelSettings } from "../providers/model-settings-provider";
 
 const MODEL_OPTIONS = [
-  { label: "spanish-med-ner", value: "spanish-med-ner" },
-  { label: "clinical-ner-1", value: "clinical-ner-1" },
-  { label: "biomed-ner-large", value: "biomed-ner-large" },
+  { label: "Transformer", value: "transformer" },
+  { label: "BiLSTM-CRF", value: "lstm" },
+  { label: "LLM", value: "llm" },
 ];
 
 export default function DrawerSetting({ onClose }: { onClose?: () => void }) {
@@ -29,10 +29,6 @@ export default function DrawerSetting({ onClose }: { onClose?: () => void }) {
 
       <Form.Item label="Modelo" name="model" rules={[{ required: true }]}>
         <Select options={MODEL_OPTIONS} />
-      </Form.Item>
-
-      <Form.Item label="Umbral de confianza" name="threshold">
-        <InputNumber min={0} max={1} step={0.05} style={{ width: 140 }} />
       </Form.Item>
 
       <Space>
