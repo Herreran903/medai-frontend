@@ -2,7 +2,7 @@ import axios from "axios";
 
 export const http = axios.create({
   baseURL: process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000",
-  timeout: 30000,
+  timeout: 1200000,
   withCredentials: false,
 });
 

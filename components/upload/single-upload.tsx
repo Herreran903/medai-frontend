@@ -44,7 +44,7 @@ export default function SingleUpload() {
       message.error("Archivo no permitido. Usa TXT, PDF o DOC/DOCX.");
       return Upload.LIST_IGNORE;
     }
-    return false; // evitamos subida automática
+    return false;
   };
 
   const hasValidFile = useMemo(() => {
@@ -58,13 +58,11 @@ export default function SingleUpload() {
 
   const hasText = useMemo(() => Boolean(texto && texto.trim().length > 0), [texto]);
 
-  // Exclusión mutua: si hay texto, deshabilito Upload; si hay archivo, deshabilito TextArea
   const textDisabled = hasValidFile;
   const uploadDisabled = hasText;
 
   const canSubmit = (hasText && !hasValidFile) || (hasValidFile && !hasText);
 
-  // Limpiar el otro campo cuando el usuario escribe texto
   const onTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const v = e.target.value;
     if (v && v.trim().length > 0 && fileList.length) {
@@ -72,7 +70,6 @@ export default function SingleUpload() {
     }
   };
 
-  // Limpiar texto cuando el usuario selecciona archivo
   const onUploadChange: UploadProps["onChange"] = ({ fileList: fl }) => {
     form.setFieldsValue({ file: fl });
     if (fl.length > 0 && hasText) {
@@ -92,6 +89,23 @@ export default function SingleUpload() {
       const f = values.file?.[0]?.originFileObj ?? values.file?.[0]?.file;
       if (f) fd.append("file", f as File);
       fd.append("model", settings.model);
+      fd.append("normalize", String(settings.normalize));
+
+      if (settings.systems?.length) {
+        fd.append("systems", settings.systems.join(","));
+      }
+
+      if (settings.restrict_types?.length) {
+        fd.append("restrict_types", settings.restrict_types.join(","));
+      }
+
+      if (typeof settings.min_link_score === "number") {
+        fd.append("min_link_score", settings.min_link_score.toString());
+      }
+
+      if (typeof settings.max_candidates === "number") {
+        fd.append("max_candidates", settings.max_candidates.toString());
+      }
 
       const data = await extractEntities(fd);
       setResult(data);
