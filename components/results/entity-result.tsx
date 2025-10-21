@@ -18,25 +18,7 @@ import {
 import React, { useMemo, useState } from "react";
 import { getEntityColor } from "@/constants/entities";
 import { CopyOutlined, LinkOutlined } from "@ant-design/icons";
-
-type Code = {
-  system: string;
-  code: string;
-  display?: string;
-  score?: number;
-  source?: string;
-};
-
-type Entity = {
-  type: string;
-  text: string;
-  start: number;
-  end: number;
-  code?: string;
-  codes?: Code[];
-};
-
-type ResultData = { text?: string; entities?: Entity[]; meta?: any };
+import { Code, Entity, ExtractResponse } from "@/lib/types";
 
 function systemLink(system: string, code: string): string | null {
   const s = (system || "").toUpperCase();
@@ -175,7 +157,7 @@ function buildHighlighted(text: string, entities: Entity[]) {
   );
 }
 
-export default function EntityResult({ data }: { data: ResultData }) {
+export default function EntityResult({ data }: { data: ExtractResponse }) {
   const entitiesByType = useMemo(() => {
     const groups: Record<string, Entity[]> = {};
     for (const e of data.entities || []) {
@@ -237,7 +219,7 @@ export default function EntityResult({ data }: { data: ResultData }) {
     {
       title: "Normalización (todos los sistemas)",
       key: "codes",
-      render: (_: any, e: Entity) => <CodesList codes={e.codes} />,
+      render: (e: Entity) => <CodesList codes={e.codes} />,
     },
   ];
 
@@ -246,7 +228,7 @@ export default function EntityResult({ data }: { data: ResultData }) {
       <Typography.Text>Filtrar por sistema</Typography.Text>
       <Segmented
         value={systemFilter}
-        onChange={(val) => setSystemFilter(val as any)}
+        onChange={(val) => setSystemFilter(val)}
         options={[
           { label: "Todos", value: "ALL" },
           { label: "RxNorm", value: "RXNORM" },
@@ -259,7 +241,7 @@ export default function EntityResult({ data }: { data: ResultData }) {
 
   return (
     <Space direction="vertical" className="w-full">
-      <Card bodyStyle={{ padding: 16 }} style={{ width: "100%" }}>
+      <Card styles={{ body: { padding: 16 } }} style={{ width: "100%" }}>
         <Tabs
           defaultActiveKey="text"
           items={[
@@ -341,7 +323,7 @@ export default function EntityResult({ data }: { data: ResultData }) {
                     size="small"
                     rowKey={(e) => `${e.type}-${e.start}-${e.end}-${e.text}`}
                     dataSource={normalizedEntities}
-                    columns={columns as any}
+                    columns={columns}
                     pagination={{ pageSize: 6, size: "small", hideOnSinglePage: true }}
                   />
                   {normalizedEntities.length === 0 && (

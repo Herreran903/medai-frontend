@@ -1,3 +1,4 @@
+import "@ant-design/v5-patch-for-react-19";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "antd/dist/reset.css";
@@ -5,7 +6,7 @@ import "./globals.css";
 import { ConfigProvider, theme as antdTheme } from "antd";
 import esES from "antd/locale/es_ES";
 import { ModelSettingsProvider } from "@/components/providers/model-settings-provider";
-import { ResultProvider } from "@/components/providers/result-provider";
+import { AntdRegistry } from "@ant-design/nextjs-registry";
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
@@ -57,7 +58,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           }}
         >
           <ModelSettingsProvider>
-            <ResultProvider>{children}</ResultProvider>
+            <AntdRegistry>{children}</AntdRegistry>
           </ModelSettingsProvider>
         </ConfigProvider>
       </body>

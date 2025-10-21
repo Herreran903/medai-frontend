@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Button, Drawer, Space, Tag, Tooltip, Typography, Card } from "antd";
+import { Button, Drawer, Space, Tooltip, Typography, Card } from "antd";
 import { SettingOutlined, TagsOutlined } from "@ant-design/icons";
 import { Activity } from "lucide-react";
 import DrawerSetting from "@/components/settings/drawer-setting";
@@ -22,7 +22,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 <Typography.Title level={3} className="!mb-0">
                   MedAI
                 </Typography.Title>
-                <Tag color="cyan">Ventilación mecánica</Tag>
               </div>
               <Typography.Text type="secondary">
                 Analiza notas clínicas y reportes para extraer <b>parámetros ventilatorios</b> y

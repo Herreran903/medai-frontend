@@ -20,32 +20,23 @@ const MODEL_OPTIONS = [
   { label: "LLM", value: "llm" },
 ];
 
-// Opciones típicas para el normalizador UTS
 const SYSTEM_OPTIONS = [
   { label: "RxNorm", value: "RXNORM" },
   { label: "SNOMED CT (US)", value: "SNOMEDCT_US" },
   { label: "ICD-10-CM", value: "ICD10CM" },
 ];
 
-const ENTITY_TYPE_OPTIONS = [
-  { label: "Medicamento", value: "MEDICAMENTO" },
-  { label: "Cáncer / Diagnóstico", value: "CANCER" },
-  { label: "Tratamiento", value: "TRATAMIENTO" },
-  { label: "Cirugía", value: "CIRUGIA" },
-  { label: "TNM", value: "TNM" },
-  { label: "Gleason", value: "GLEASON" },
-];
+const ENTITY_TYPE_OPTIONS = [{ label: "Diagnóstico", value: "DX" }];
 
 export default function DrawerSetting({ onClose }: { onClose?: () => void }) {
   const { settings, setSettings } = useModelSettings();
   const [form] = Form.useForm();
 
-  // Valores por defecto si no existen aún en el provider
   const initialValues = {
     model: settings?.model ?? "transformer",
     normalize: settings?.normalize ?? false,
     systems: settings?.systems ?? ["RXNORM", "SNOMEDCT_US", "ICD10CM"],
-    restrict_types: settings?.restrict_types ?? ["MEDICAMENTO", "CANCER", "TRATAMIENTO", "CIRUGIA"],
+    restrict_types: settings?.restrict_types ?? ["DX"],
     min_link_score: settings?.min_link_score ?? 0.6,
     max_candidates: settings?.max_candidates ?? 25,
   };
@@ -56,7 +47,6 @@ export default function DrawerSetting({ onClose }: { onClose?: () => void }) {
       form={form}
       initialValues={initialValues}
       onFinish={(vals) => {
-        // Asegurar tipos numéricos
         const payload = {
           ...vals,
           min_link_score: Number(vals.min_link_score),
@@ -70,14 +60,12 @@ export default function DrawerSetting({ onClose }: { onClose?: () => void }) {
         Estos valores se aplican por defecto a las extracciones.
       </Typography.Paragraph>
 
-      {/* Modelo */}
       <Form.Item label="Modelo" name="model" rules={[{ required: true }]}>
         <Select options={MODEL_OPTIONS} />
       </Form.Item>
 
       <Divider />
 
-      {/* Normalización UTS */}
       <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
         <Typography.Title level={5} style={{ margin: 0 }}>
           Normalización (UTS/UMLS)

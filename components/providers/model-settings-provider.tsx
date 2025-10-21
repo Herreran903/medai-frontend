@@ -15,7 +15,7 @@ export const DEFAULTS: ModelSettings = {
   model: "transformer",
   normalize: false,
   systems: ["RXNORM", "SNOMEDCT_US", "ICD10CM"],
-  restrict_types: ["MEDICAMENTO", "CANCER", "TRATAMIENTO", "CIRUGIA"],
+  restrict_types: ["DX"],
   min_link_score: 0.6,
   max_candidates: 25,
 };
