@@ -7,25 +7,16 @@
  * - Envía también min_link_score y max_candidates para coherencia con el flujo por lotes.
  */
 import { useState, useMemo } from "react";
-import {
-  Button,
-  Form,
-  Input,
-  Upload,
-  message,
-  Space,
-  Typography,
-  DatePicker,
-  Row,
-  Col,
-  Spin,
-} from "antd";
+import { Button, Form, Input, Upload, Space, Typography, DatePicker, Row, Col } from "antd";
 import type { UploadProps } from "antd";
 import { InboxOutlined } from "@ant-design/icons";
 import { extractEntities } from "@/lib/api";
 import { useModelSettings } from "../providers/model-settings-provider";
 import type { UploadFile, UploadChangeParam } from "antd/es/upload/interface";
 import type { Dayjs } from "dayjs";
+import LoadingOverlay from "@/components/ui/LoadingOverlay";
+import { notify } from "@/lib/notifications";
+import { toUserMessage } from "@/lib/http";
 
 const { Dragger } = Upload;
 const { TextArea } = Input;
@@ -45,13 +36,7 @@ function hasAllowedExtension(filename?: string) {
 }
 
 function getErrorMessage(err: unknown): string {
-  if (err instanceof Error) return err.message;
-  if (typeof err === "string") return err;
-  if (typeof err === "object" && err && "message" in err) {
-    const msg = (err as { message?: unknown }).message;
-    if (typeof msg === "string") return msg;
-  }
-  return "Error al extraer";
+  return toUserMessage(err);
 }
 
 type FormValues = {
@@ -79,7 +64,7 @@ export default function SingleUpload() {
     const isMimeOk = file.type ? ALLOWED_MIME.has(file.type) : true;
     const isExtOk = hasAllowedExtension(file.name);
     if (!isMimeOk && !isExtOk) {
-      message.error("Archivo no permitido. Usa TXT, PDF o DOC/DOCX.");
+      notify.error("Archivo no permitido. Usa TXT, PDF o DOC/DOCX.");
       return Upload.LIST_IGNORE;
     }
     return false;
@@ -120,10 +105,11 @@ export default function SingleUpload() {
       (values.file?.length === 1 && !(values.texto && values.texto.trim().length > 0));
 
     if (!canSubmitNow) {
-      message.warning("Proporciona texto o un archivo válido (solo uno).");
+      notify.info("Proporciona texto o un archivo válido (solo uno).");
       return;
     }
 
+    let cerrarCargando: (() => void) | null = null;
     try {
       await form.validateFields(["episodio", "fecha"]);
       setLoading(true);
@@ -163,25 +149,22 @@ export default function SingleUpload() {
       const ack = await extractEntities(fd);
 
       if (!ack?.id) {
-        message.warning("La extracción no devolvió un ID.");
+        notify.info("La extracción no devolvió un ID.");
         return;
       }
       if (!ack.stored) {
-        message.warning("La nota no fue almacenada (save=false o política de guardado).");
+        notify.info("La nota no fue almacenada (save=false o política de guardado).");
       }
 
       const url = `/results/${ack.id}`;
       window.location.assign(url);
     } catch (e: unknown) {
       const isFieldsError =
-        typeof e === "object" &&
-        e !== null &&
-        "errorFields" in e &&
-        Array.isArray(e.errorFields);
+        typeof e === "object" && e !== null && "errorFields" in e && Array.isArray(e.errorFields);
       if (isFieldsError) {
-        message.error("Completa el número de episodio y la fecha.");
+        notify.error("Completa el número de episodio y la fecha.");
       } else {
-        message.error(getErrorMessage(e));
+        notify.error(getErrorMessage(e));
       }
     } finally {
       setLoading(false);
@@ -190,8 +173,8 @@ export default function SingleUpload() {
 
   return (
     <div className="space-y-4">
-      <Form layout="vertical" form={form} onFinish={onSubmit}>
-        <Spin spinning={loading} fullscreen tip="Procesando…" />
+      <Form layout="vertical" form={form} onFinish={onSubmit} className="relative">
+        <LoadingOverlay show={loading} text="Procesando extracción…" />
         <Row gutter={12}>
           <Col xs={24} md={12}>
             <Form.Item
@@ -263,7 +246,7 @@ export default function SingleUpload() {
 
         <Space>
           <Button type="primary" htmlType="submit" loading={loading} disabled={!canSubmit}>
-            Extraer entidades
+            Iniciar extracción
           </Button>
           <Typography.Text type="secondary" className="capitalize">
             Modelo actual: <b>{settings.model}</b>

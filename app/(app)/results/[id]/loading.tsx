@@ -1,6 +1,6 @@
 "use client";
-import { Spin } from "antd";
+import LoadingOverlay from "@/components/ui/LoadingOverlay";
 
 export default function Loading() {
-  return <Spin fullscreen tip="Cargando resultado…" />;
+  return <LoadingOverlay show fullscreen text="Procesando extracción…" />;
 }

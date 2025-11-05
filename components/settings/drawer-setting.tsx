@@ -27,7 +27,6 @@ const MODEL_OPTIONS: { label: string; value: ModelKind }[] = [
   { label: "LLM", value: "llm" },
 ];
 
-
 export default function DrawerSetting({ onClose }: { onClose?: () => void }) {
   const { settings, setSettings } = useModelSettings();
   const [form] = Form.useForm();

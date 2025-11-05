@@ -13,8 +13,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <>
-      <main className="flex min-h-screen items-center justify-center p-6 md:p-8">
-        <section className="w-full max-w-5xl xl:max-w-6xl">
+      <main className="flex h-svh items-center justify-center overflow-hidden p-4 md:p-8">
+        <section className="flex h-full w-full max-w-5xl flex-col overflow-hidden xl:max-w-6xl">
           <header className="mb-4 flex items-center justify-between">
             <div className="space-y-1">
               <div className="flex items-center gap-2">
@@ -45,8 +45,11 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               </Tooltip>
             </Space>
           </header>
-          <Card className="w-full rounded-lg shadow-md" bodyStyle={{ padding: 24 }}>
-            {children}
+          {/* Tarjeta principal: ocupar alto disponible sin forzar scroll de la página.
+              - El scroll ocurre dentro del contenido de la tarjeta cuando hay desborde.
+              - Diseño sobrio con fondo claro translúcido y leve blur. */}
+          <Card className="relative flex min-h-0 w-full flex-1 flex-col overflow-hidden rounded-xl border border-slate-200/60 bg-white/80 shadow-md backdrop-blur-sm">
+            <div className="h-full overflow-auto p-4 sm:p-5 md:p-6 lg:p-8">{children}</div>
           </Card>
         </section>
       </main>

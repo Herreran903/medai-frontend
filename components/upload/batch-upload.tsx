@@ -34,17 +34,7 @@
  */
 
 import { useState } from "react";
-import {
-  Upload,
-  Table,
-  Typography,
-  Form,
-  Button,
-  Input,
-  DatePicker,
-  Space,
-  message,
-} from "antd";
+import { Upload, Table, Typography, Form, Button, Input, DatePicker, Space } from "antd";
 import type { UploadProps } from "antd";
 import type { ColumnsType } from "antd/es/table";
 import { InboxOutlined } from "@ant-design/icons";
@@ -53,6 +43,9 @@ import type { BatchAckResponse } from "@/lib/types";
 import type { Dayjs } from "dayjs";
 import { useModelSettings } from "../providers/model-settings-provider";
 import type { UploadFile, UploadChangeParam } from "antd/es/upload/interface";
+import LoadingOverlay from "@/components/ui/LoadingOverlay";
+import { notify } from "@/lib/notifications";
+import { toUserMessage } from "@/lib/http";
 
 const { Dragger } = Upload;
 
@@ -77,6 +70,7 @@ export default function BatchUpload() {
   const [rows, setRows] = useState<RowResult[]>([]);
   const [loading, setLoading] = useState(false);
   const [form] = Form.useForm();
+  const [showResultsOnly, setShowResultsOnly] = useState(false);
 
   const preData: FileRow[] = files.map((f) => ({ key: f.uid, filename: f.name }));
 
@@ -148,23 +142,27 @@ export default function BatchUpload() {
 
   const onFinish = async () => {
     if (!files.length) {
-      message.info("Selecciona archivos primero.");
+      notify.info("Selecciona archivos primero.");
       return;
     }
 
-    // Validación: cada archivo debe tener episodio y fecha
+    // Validar que cada archivo tenga episodio y fecha asignados
     const missing = files.filter((f) => {
       const ep = episodes[f.uid]?.trim();
       const dt = dates[f.uid];
       return !ep || !dt;
     });
     if (missing.length) {
-      message.error("Completa Episodio y Fecha para cada archivo antes de enviar.");
+      notify.error(
+        "Falta completar episodio y fecha para uno o más archivos. Indica el ID del episodio y selecciona la fecha para cada archivo."
+      );
       return;
     }
 
+    let cerrarCargando: (() => void) | null = null;
     try {
       setLoading(true);
+      cerrarCargando = notify.loading("Procesando extracción…");
 
       const fd = new FormData();
       files.forEach((f) => {
@@ -206,72 +204,100 @@ export default function BatchUpload() {
           filename: it.filename ?? `#${idx + 1}`,
           status: hasError ? "error" : "ok",
           count: typeof it.entity_count === "number" ? it.entity_count : undefined,
-          error: hasError ? it.error ?? "Error en procesamiento" : undefined,
+          error: hasError ? (it.error ?? "Error en procesamiento") : undefined,
           id: typeof it.id === "string" ? it.id : undefined,
         };
       });
 
       setRows(mapped);
-      message.success("Lote procesado");
+      setShowResultsOnly(true);
+
+      const errorCount = mapped.filter((m) => m.status === "error").length;
+      if (errorCount > 0) {
+        notify.error(`${errorCount} archivo(s) fallaron en el lote`);
+      } else {
+        notify.success("Extracción completada");
+      }
     } catch (e) {
-      const msg = e instanceof Error ? e.message : "Error en el lote";
-      message.error(msg);
-      setRows((prev) => prev.map((r) => ({ ...r, status: "error" })));
+      const msg = toUserMessage(e);
+      notify.error(msg);
+      setRows((prev) => prev.map((r) => ({ ...r, status: "error", error: r.error ?? msg })));
     } finally {
       setLoading(false);
+      if (cerrarCargando) cerrarCargando();
     }
+  };
+
+  const clearAll = () => {
+    setFiles([]);
+    setDates({});
+    setEpisodes({});
+    setRows([]);
+    setShowResultsOnly(false);
+    form.resetFields();
   };
 
   return (
     <div className="space-y-3">
       <Form layout="vertical" form={form} onFinish={onFinish}>
+        {/* Muestra un overlay de carga mientras se procesa la extracción */}
+        <LoadingOverlay show={loading} text="Procesando extracción…" />
         {/* Este endpoint no requiere campos adicionales en el formulario */}
 
-        <Dragger
-          multiple
-          accept=".txt,.pdf,.doc,.docx"
-          beforeUpload={beforeUpload}
-          onChange={onChange}
-          onRemove={onRemove}
-          fileList={files}
-        >
-          <p className="ant-upload-drag-icon">
-            <InboxOutlined />
-          </p>
-          <p className="ant-upload-text">Arrastra o haz clic para seleccionar varios archivos</p>
-          <p className="ant-upload-hint">
-            Puedes seleccionar varios archivos. Se procesarán en un solo lote.
-          </p>
-        </Dragger>
+        {!showResultsOnly && (
+          <>
+            <Dragger
+              multiple
+              accept=".txt,.pdf,.doc,.docx"
+              beforeUpload={beforeUpload}
+              onChange={onChange}
+              onRemove={onRemove}
+              fileList={files}
+            >
+              <p className="ant-upload-drag-icon">
+                <InboxOutlined />
+              </p>
+              <p className="ant-upload-text">
+                Arrastra o haz clic para seleccionar varios archivos
+              </p>
+              <p className="ant-upload-hint">
+                Puedes seleccionar varios archivos. Se procesarán en un solo lote.
+              </p>
+            </Dragger>
 
-        <Typography.Title level={5} style={{ marginTop: 12 }}>
-          Archivos seleccionados
-        </Typography.Title>
-        <Table
-          size="small"
-          columns={preColumns}
-          dataSource={preData}
-          pagination={false}
-          locale={{ emptyText: "Sin archivos" }}
-          rowKey="key"
-        />
+            <Typography.Title level={5} style={{ marginTop: 12 }}>
+              Archivos seleccionados
+            </Typography.Title>
+            <Table
+              size="small"
+              columns={preColumns}
+              dataSource={preData}
+              pagination={false}
+              locale={{ emptyText: "Sin archivos" }}
+              rowKey="key"
+            />
 
-        <Space style={{ marginTop: 12 }}>
-          <Button type="primary" htmlType="submit" loading={loading} disabled={!files.length}>
-            Extraer entidades
-          </Button>
-          <Typography.Text type="secondary" className="capitalize">
-            Modelo actual: <b>{settings.model}</b>
-          </Typography.Text>
-        </Space>
+            <Space style={{ marginTop: 12 }}>
+              <Button type="primary" htmlType="submit" loading={loading} disabled={!files.length}>
+                Iniciar extracción
+              </Button>
+              <Typography.Text type="secondary" className="capitalize">
+                Modelo actual: <b>{settings.model}</b>
+              </Typography.Text>
+            </Space>
+          </>
+        )}
       </Form>
 
-      {/* Resultados (opcional: déjalo si quieres visualizar al final) */}
+      {/* Resultados */}
       {rows.length > 0 && (
         <>
-          <Typography.Title level={5} style={{ marginTop: 16 }}>
-            Resultados del lote
-          </Typography.Title>
+          <div className="flex items-center justify-between" style={{ marginTop: 16 }}>
+            <Typography.Title level={5} style={{ margin: 0 }}>
+              Resultados de la extracción
+            </Typography.Title>
+            <Button onClick={clearAll}>Limpiar</Button>
+          </div>
           <Table<RowResult>
             size="small"
             rowKey="key"
@@ -289,6 +315,7 @@ export default function BatchUpload() {
             ]}
             dataSource={rows}
             pagination={false}
+            scroll={{ y: 360 }}
           />
         </>
       )}

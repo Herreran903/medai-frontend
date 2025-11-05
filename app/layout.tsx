@@ -20,7 +20,10 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="es">
-      <body suppressHydrationWarning className={`${geistSans.variable} ${geistMono.variable} bg-gray-50`}>
+      <body
+        suppressHydrationWarning
+        className={`${geistSans.variable} ${geistMono.variable} bg-gray-50`}
+      >
         <ConfigProvider
           locale={esES}
           theme={{

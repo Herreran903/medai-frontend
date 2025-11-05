@@ -2,23 +2,15 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { Button, Typography, Spin, Alert } from "antd";
+import { Button, Typography, Alert } from "antd";
 import EntityResult from "@/components/results/entity-result";
 import { fetchNote } from "@/lib/api";
 import { ExtractResponse } from "@/lib/types";
+import LoadingOverlay from "@/components/ui/LoadingOverlay";
+import { toUserMessage } from "@/lib/http";
 
 function getErrorMessage(err: unknown): string {
-  if (err instanceof Error) return err.message;
-  if (typeof err === "string") return err;
-  if (
-    typeof err === "object" &&
-    err !== null &&
-    "message" in err &&
-    typeof (err as Record<string, unknown>).message === "string"
-  ) {
-    return (err as { message: string }).message;
-  }
-  return "Error al cargar la nota";
+  return toUserMessage(err);
 }
 
 export default function ResultPage() {
@@ -48,7 +40,8 @@ export default function ResultPage() {
   }, [id]);
 
   return (
-    <div>
+    <div className="relative">
+      <LoadingOverlay show={loading} text="Procesando extracción…" />
       <div className="mb-4 flex items-center justify-between">
         <Typography.Title level={4} className="!mb-0">
           Resultado
@@ -56,7 +49,7 @@ export default function ResultPage() {
         <Button onClick={() => router.back()}>Volver</Button>
       </div>
 
-      {loading && <Spin fullscreen tip="Cargando resultado…" />}
+      {/* Loader gestionado por LoadingOverlay */}
 
       {!loading && err && <Alert type="error" message={err} />}
 
