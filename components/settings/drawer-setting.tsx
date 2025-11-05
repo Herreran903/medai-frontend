@@ -1,5 +1,12 @@
 "use client";
 
+/**
+ * DrawerSetting()
+ * Global extraction settings form.
+ * - systems (SABs) and restrict_types are intentionally hidden and locked in the provider.
+ * - This form only allows adjusting: model, normalization toggle, and numeric thresholds.
+ * - The provider enforces immutability for locked fields on every update.
+ */
 import {
   Form,
   InputNumber,
@@ -12,21 +19,14 @@ import {
   Tooltip,
 } from "antd";
 import { InfoCircleOutlined } from "@ant-design/icons";
-import { useModelSettings } from "../providers/model-settings-provider";
+import { useModelSettings, type ModelKind } from "../providers/model-settings-provider";
 
-const MODEL_OPTIONS = [
+const MODEL_OPTIONS: { label: string; value: ModelKind }[] = [
   { label: "Transformer", value: "transformer" },
   { label: "BiLSTM-CRF", value: "lstm" },
   { label: "LLM", value: "llm" },
 ];
 
-const SYSTEM_OPTIONS = [
-  { label: "RxNorm", value: "RXNORM" },
-  { label: "SNOMED CT (US)", value: "SNOMEDCT_US" },
-  { label: "ICD-10-CM", value: "ICD10CM" },
-];
-
-const ENTITY_TYPE_OPTIONS = [{ label: "Diagnóstico", value: "DX" }];
 
 export default function DrawerSetting({ onClose }: { onClose?: () => void }) {
   const { settings, setSettings } = useModelSettings();
@@ -35,8 +35,6 @@ export default function DrawerSetting({ onClose }: { onClose?: () => void }) {
   const initialValues = {
     model: settings?.model ?? "transformer",
     normalize: settings?.normalize ?? false,
-    systems: settings?.systems ?? ["RXNORM", "SNOMEDCT_US", "ICD10CM"],
-    restrict_types: settings?.restrict_types ?? ["DX"],
     min_link_score: settings?.min_link_score ?? 0.6,
     max_candidates: settings?.max_candidates ?? 25,
   };
@@ -47,6 +45,7 @@ export default function DrawerSetting({ onClose }: { onClose?: () => void }) {
       form={form}
       initialValues={initialValues}
       onFinish={(vals) => {
+        // Normalize numeric inputs and delegate enforcement of locked fields to the provider
         const payload = {
           ...vals,
           min_link_score: Number(vals.min_link_score),
@@ -82,32 +81,6 @@ export default function DrawerSetting({ onClose }: { onClose?: () => void }) {
         extra="Si está activado, intentará normalizar las entidades detectadas con el UTS."
       >
         <Switch checkedChildren="Activado" unCheckedChildren="Desactivado" />
-      </Form.Item>
-
-      <Form.Item
-        label="Sistemas destino (SABs)"
-        name="systems"
-        tooltip="Vocabularios a priorizar al mapear CUIs. Orden no importa aquí; el servidor los reordena por tipo."
-      >
-        <Select
-          mode="multiple"
-          allowClear
-          options={SYSTEM_OPTIONS}
-          placeholder="Selecciona uno o varios (RxNorm, SNOMED, ICD-10-CM...)"
-        />
-      </Form.Item>
-
-      <Form.Item
-        label="Tipos de entidad a normalizar"
-        name="restrict_types"
-        tooltip="Solo estos tipos pasarán por el normalizador. El resto quedará sin códigos."
-      >
-        <Select
-          mode="multiple"
-          allowClear
-          options={ENTITY_TYPE_OPTIONS}
-          placeholder="Selecciona los tipos (p. ej., Medicamento, Cáncer...)"
-        />
       </Form.Item>
 
       <Form.Item

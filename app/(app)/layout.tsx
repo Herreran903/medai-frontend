@@ -13,8 +13,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <>
-      <main className="flex min-h-screen items-center justify-center p-4">
-        <section className="w-full max-w-3xl">
+      <main className="flex min-h-screen items-center justify-center p-6 md:p-8">
+        <section className="w-full max-w-5xl xl:max-w-6xl">
           <header className="mb-4 flex items-center justify-between">
             <div className="space-y-1">
               <div className="flex items-center gap-2">
@@ -45,7 +45,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               </Tooltip>
             </Space>
           </header>
-          <Card className="w-full rounded-lg shadow-md">{children}</Card>
+          <Card className="w-full rounded-lg shadow-md" bodyStyle={{ padding: 24 }}>
+            {children}
+          </Card>
         </section>
       </main>
       <Drawer

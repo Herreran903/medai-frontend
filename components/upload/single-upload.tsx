@@ -1,5 +1,11 @@
 "use client";
 
+/**
+ * SingleUpload()
+ * - Permite extracción por texto o un solo archivo.
+ * - Usa la configuración global (model, normalize, SABs bloqueados, types bloqueados).
+ * - Envía también min_link_score y max_candidates para coherencia con el flujo por lotes.
+ */
 import { useState, useMemo } from "react";
 import {
   Button,
@@ -130,16 +136,28 @@ export default function SingleUpload() {
       const f = values.file?.[0]?.originFileObj;
       if (f) fd.append("file", f);
 
+      // Metadatos de la nota
       fd.append("episode_id", String(values.episodio).trim());
       fd.append("note_date", values.fecha.toDate().toISOString());
+
+      // Configuración del modelo / normalización
       fd.append("model", settings.model);
       fd.append("normalize", String(settings.normalize));
 
+      // Vocabularios y tipos bloqueados (definidos en el provider)
       if (settings.systems?.length) {
         fd.append("systems_csv", settings.systems.join(","));
       }
       if (settings.restrict_types?.length) {
         fd.append("restrict_types_csv", settings.restrict_types.join(","));
+      }
+
+      // Umbral y número de candidatos: se envían también en flujo individual
+      if (typeof settings.min_link_score === "number") {
+        fd.append("min_link_score", settings.min_link_score.toString());
+      }
+      if (typeof settings.max_candidates === "number") {
+        fd.append("max_candidates", settings.max_candidates.toString());
       }
 
       const ack = await extractEntities(fd);

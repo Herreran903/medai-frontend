@@ -1,5 +1,38 @@
 "use client";
 
+/**
+ * BatchUpload()
+ * Subida y extracción en lote para múltiples archivos.
+ *
+ * Contrato del endpoint backend (POST /extract-batch):
+ * - FormData enviado por el frontend:
+ *   - files: File[]                // uno o más archivos (clave repetida "files")
+ *   - model: string                // modelo de extracción
+ *   - save: "true" | "false"       // explícito; el frontend envía "true"
+ *   - normalize: "true" | "false"
+ *   - systems_csv: string          // CSV de SABs bloqueados (p. ej. "RXNORM,SNOMEDCT_US,ICD10CM")
+ *   - restrict_types_csv: string   // CSV de tipos bloqueados (p. ej. "DX")
+ *   - notes_meta: string           // JSON.stringify([{ filename, episode_id, note_date }])
+ *                                  //  - episode_id: string | null (por archivo)
+ *                                  //  - note_date: ISO string | null (por archivo)
+ * - Respuesta (JSON):
+ *   {
+ *     items: Array<{
+ *       filename: string;
+ *       id?: string | null;
+ *       stored: boolean;
+ *       entity_count?: number | null;
+ *       url?: string | null;
+ *       error?: string | null;
+ *     }>
+ *   }
+ *
+ * Notas:
+ * - Los SABs y tipos se bloquean desde el provider y no son editables.
+ * - notes_meta permite que el backend guarde por (episode_id, note_date) por archivo.
+ * - La tabla de resultados incluye un link "Ver entidades" cuando el backend devuelve id.
+ */
+
 import { useState } from "react";
 import {
   Upload,
@@ -9,16 +42,15 @@ import {
   Button,
   Input,
   DatePicker,
-  Row,
-  Col,
   Space,
   message,
 } from "antd";
 import type { UploadProps } from "antd";
 import type { ColumnsType } from "antd/es/table";
 import { InboxOutlined } from "@ant-design/icons";
-import type { Dayjs } from "dayjs";
 import { extractEntitiesBatch } from "@/lib/api";
+import type { BatchAckResponse } from "@/lib/types";
+import type { Dayjs } from "dayjs";
 import { useModelSettings } from "../providers/model-settings-provider";
 import type { UploadFile, UploadChangeParam } from "antd/es/upload/interface";
 
@@ -30,29 +62,38 @@ type RowResult = {
   status: "procesando" | "ok" | "error";
   count?: number;
   error?: string;
+  id?: string;
 };
 
 type FileRow = { key: string; filename: string };
-type FormValues = { episode: string };
 
-type BatchApiItem = {
-  filename?: string;
-  entities?: unknown[];
-  error?: string;
-};
+/** La respuesta tipada viene dada por BatchAckResponse.items (ver lib/types). */
 
 export default function BatchUpload() {
   const { settings } = useModelSettings();
   const [files, setFiles] = useState<UploadFile[]>([]);
   const [dates, setDates] = useState<Record<string, Dayjs | null>>({});
+  const [episodes, setEpisodes] = useState<Record<string, string>>({});
   const [rows, setRows] = useState<RowResult[]>([]);
   const [loading, setLoading] = useState(false);
-  const [form] = Form.useForm<FormValues>();
+  const [form] = Form.useForm();
 
   const preData: FileRow[] = files.map((f) => ({ key: f.uid, filename: f.name }));
 
   const preColumns: ColumnsType<FileRow> = [
     { title: "Archivo", dataIndex: "filename", key: "filename" },
+    {
+      title: "Episodio",
+      dataIndex: "key",
+      key: "episode",
+      render: (uid: string) => (
+        <Input
+          placeholder="ID/Episodio"
+          value={episodes[uid] ?? ""}
+          onChange={(e) => setEpisodes((prev) => ({ ...prev, [uid]: e.target.value }))}
+        />
+      ),
+    },
     {
       title: "Fecha",
       dataIndex: "key",
@@ -61,6 +102,8 @@ export default function BatchUpload() {
         <DatePicker
           style={{ width: "100%" }}
           value={dates[uid] ?? null}
+          showTime={{ format: "HH:mm", minuteStep: 1 }}
+          format="YYYY-MM-DD HH:mm"
           onChange={(d) => setDates((prev) => ({ ...prev, [uid]: d }))}
         />
       ),
@@ -79,6 +122,13 @@ export default function BatchUpload() {
       });
       return next;
     });
+    setEpisodes((prev) => {
+      const next: Record<string, string> = {};
+      nextList.forEach((f) => {
+        next[f.uid] = prev[f.uid] ?? "";
+      });
+      return next;
+    });
   };
 
   const onRemove: UploadProps["onRemove"] = (f) => {
@@ -88,12 +138,28 @@ export default function BatchUpload() {
       delete next[f.uid];
       return next;
     });
+    setEpisodes((prev) => {
+      const next = { ...prev };
+      delete next[f.uid];
+      return next;
+    });
     return true;
   };
 
-  const onFinish = async (values: FormValues) => {
+  const onFinish = async () => {
     if (!files.length) {
       message.info("Selecciona archivos primero.");
+      return;
+    }
+
+    // Validación: cada archivo debe tener episodio y fecha
+    const missing = files.filter((f) => {
+      const ep = episodes[f.uid]?.trim();
+      const dt = dates[f.uid];
+      return !ep || !dt;
+    });
+    if (missing.length) {
+      message.error("Completa Episodio y Fecha para cada archivo antes de enviar.");
       return;
     }
 
@@ -105,42 +171,43 @@ export default function BatchUpload() {
         if (f.originFileObj) fd.append("files", f.originFileObj);
       });
 
+      // Campos esperados por el endpoint
       fd.append("model", settings.model);
+      fd.append("save", "true"); // explícito aunque el backend por defecto sea True
       if (typeof settings.normalize === "boolean") {
         fd.append("normalize", String(settings.normalize));
       }
       if (settings.systems?.length) {
-        fd.append("systems", settings.systems.join(","));
+        fd.append("systems_csv", settings.systems.join(","));
       }
       if (settings.restrict_types?.length) {
-        fd.append("restrict_types", settings.restrict_types.join(","));
-      }
-      if (typeof settings.min_link_score === "number") {
-        fd.append("min_link_score", settings.min_link_score.toString());
-      }
-      if (typeof settings.max_candidates === "number") {
-        fd.append("max_candidates", settings.max_candidates.toString());
+        fd.append("restrict_types_csv", settings.restrict_types.join(","));
       }
 
-      fd.append("episode_id", String(values.episode).trim());
+      // Metadatos por archivo (para que el backend guarde por episodio/fecha)
       const notesMeta = files.map((f) => ({
         filename: f.name,
-        note_date: dates[f.uid]?.toDate().toISOString() ?? null,
+        episode_id: (episodes[f.uid]?.trim() || null) as string | null,
+        note_date: dates[f.uid] ? dates[f.uid]!.toDate().toISOString() : null,
       }));
       fd.append("notes_meta", JSON.stringify(notesMeta));
 
       setRows(files.map((f) => ({ key: f.uid, filename: f.name, status: "procesando" })));
 
-      const result = (await extractEntitiesBatch(fd)) as unknown as BatchApiItem[] | undefined;
+      // Llamado tipado al backend
+      const resp: BatchAckResponse = await extractEntitiesBatch(fd);
 
-      const mapped: RowResult[] = (result ?? []).map((r, idx) => {
-        const ok = Array.isArray(r.entities);
+      // Mapeo a filas de la tabla desde la respuesta tipada
+      const items = Array.isArray(resp?.items) ? resp.items : [];
+      const mapped: RowResult[] = items.map((it, idx) => {
+        const hasError = Boolean(it.error);
         return {
           key: String(idx),
-          filename: r.filename ?? `#${idx + 1}`,
-          status: ok ? "ok" : "error",
-          count: ok ? r.entities!.length : 0,
-          error: ok ? undefined : (r.error ?? "Sin entidades o error"),
+          filename: it.filename ?? `#${idx + 1}`,
+          status: hasError ? "error" : "ok",
+          count: typeof it.entity_count === "number" ? it.entity_count : undefined,
+          error: hasError ? it.error ?? "Error en procesamiento" : undefined,
+          id: typeof it.id === "string" ? it.id : undefined,
         };
       });
 
@@ -158,17 +225,7 @@ export default function BatchUpload() {
   return (
     <div className="space-y-3">
       <Form layout="vertical" form={form} onFinish={onFinish}>
-        <Row gutter={12}>
-          <Col xs={24} md={12}>
-            <Form.Item
-              label="Número de episodio"
-              name="episode"
-              rules={[{ required: true, message: "Ingresa el número de episodio" }]}
-            >
-              <Input placeholder="Ej: 110006-168633 (o el ID numérico)" />
-            </Form.Item>
-          </Col>
-        </Row>
+        {/* Este endpoint no requiere campos adicionales en el formulario */}
 
         <Dragger
           multiple
@@ -183,7 +240,7 @@ export default function BatchUpload() {
           </p>
           <p className="ant-upload-text">Arrastra o haz clic para seleccionar varios archivos</p>
           <p className="ant-upload-hint">
-            Todos pertenecen al mismo episodio; asigna la fecha por archivo abajo.
+            Puedes seleccionar varios archivos. Se procesarán en un solo lote.
           </p>
         </Dragger>
 
@@ -223,6 +280,12 @@ export default function BatchUpload() {
               { title: "Estado", dataIndex: "status" },
               { title: "Entidades", dataIndex: "count" },
               { title: "Error", dataIndex: "error" },
+              {
+                title: "Acción",
+                key: "action",
+                render: (_: unknown, r: RowResult) =>
+                  r.id ? <a href={`/results/${r.id}`}>Ver entidades</a> : null,
+              },
             ]}
             dataSource={rows}
             pagination={false}
