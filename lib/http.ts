@@ -1,4 +1,4 @@
-import axios, { AxiosError } from "axios";
+import axios, { AxiosError, AxiosResponse } from "axios";
 
 /**
  * ApiError — normaliza errores HTTP conservando status y detalle del backend.
@@ -84,14 +84,24 @@ export function toUserMessage(err: unknown): string {
     return message || "Error en la solicitud";
   }
 
-  const ax = err as AxiosError | undefined;
-  if (ax && typeof ax === "object" && "isAxiosError" in (ax as any)) {
-    const status = ax.response?.status;
-    const data: any = ax.response?.data;
-    const detail = extractDetail(data?.detail ?? data?.message ?? data);
-    const msg = detail || ax.message || "Error de red";
+  const axErr = axios.isAxiosError(err) ? (err as AxiosError) : null;
+  if (axErr) {
+    const status = axErr.response?.status;
+    const rawData = axErr.response?.data as unknown;
 
-    if ((ax as any).code === "ECONNABORTED") return "Tiempo de espera agotado";
+    let detail: string | null = null;
+    if (rawData && typeof rawData === "object") {
+      const obj = rawData as Record<string, unknown>;
+      const maybeDetail = (obj as { detail?: unknown }).detail;
+      const maybeMessage = (obj as { message?: unknown }).message;
+      detail = extractDetail(maybeDetail ?? maybeMessage ?? rawData);
+    } else {
+      detail = extractDetail(rawData);
+    }
+
+    const msg = detail || axErr.message || "Error de red";
+
+    if (axErr.code === "ECONNABORTED") return "Tiempo de espera agotado";
     if (!status) return "No se pudo conectar con el servidor";
     if (status === 404) return detail || "Recurso no encontrado";
     if (status === 413) return "Archivo demasiado grande";
@@ -121,17 +131,26 @@ export const http = axios.create({
  * - Normaliza mensajes para casos comunes (timeout, 4xx/5xx, red).
  */
 http.interceptors.response.use(
-  (res: any) => res,
+  (res: AxiosResponse) => res,
   (error: unknown) => {
     const axErr = error as AxiosError;
     const status = axErr?.response?.status;
-    const rawData: any = axErr?.response?.data;
-    const detail = extractDetail(rawData?.detail ?? rawData?.message ?? rawData);
+    const rawData = axErr?.response?.data as unknown;
 
-    let msg: string = detail || axErr?.message || "Error de red";
+    let extractedDetail: string | null = null;
+    if (rawData && typeof rawData === "object") {
+      const obj = rawData as Record<string, unknown>;
+      const maybeDetail = (obj as { detail?: unknown }).detail;
+      const maybeMessage = (obj as { message?: unknown }).message;
+      extractedDetail = extractDetail(maybeDetail ?? maybeMessage ?? rawData);
+    } else {
+      extractedDetail = extractDetail(rawData);
+    }
+
+    let msg: string = extractedDetail || axErr?.message || "Error de red";
     let isNetwork = false;
 
-    if ((axErr as any)?.code === "ECONNABORTED") {
+    if (axErr.code === "ECONNABORTED") {
       msg = "Tiempo de espera agotado";
     } else if (!status) {
       // CORS/servidor caído/offline
@@ -139,11 +158,11 @@ http.interceptors.response.use(
       isNetwork = true;
     } else {
       // Mensajes amigables por status cuando no hay detail claro
-      if (status === 404 && !detail) msg = "Recurso no encontrado";
+      if (status === 404 && !extractedDetail) msg = "Recurso no encontrado";
       if (status === 413) msg = "Archivo demasiado grande";
       if (status === 415) msg = "Tipo de archivo no soportado";
-      if (status === 422 && !detail) msg = "Parámetros inválidos";
-      if (status >= 500 && !detail) msg = "Error interno del servidor";
+      if (status === 422 && !extractedDetail) msg = "Parámetros inválidos";
+      if (status >= 500 && !extractedDetail) msg = "Error interno del servidor";
     }
 
     return Promise.reject(new ApiError(msg, { status, detail: rawData, isNetwork }));

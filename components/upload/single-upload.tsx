@@ -109,7 +109,6 @@ export default function SingleUpload() {
       return;
     }
 
-    let cerrarCargando: (() => void) | null = null;
     try {
       await form.validateFields(["episodio", "fecha"]);
       setLoading(true);
