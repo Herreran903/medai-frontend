@@ -171,6 +171,10 @@ export default function BatchUpload() {
 
       // Campos esperados por el endpoint
       fd.append("model", settings.model);
+      // Variante opcional del modelo (según backend)
+      if (typeof settings.model_variant === "string" && settings.model_variant.trim().length > 0) {
+        fd.append("model_variant", settings.model_variant.trim());
+      }
       fd.append("save", "true"); // explícito aunque el backend por defecto sea True
       if (typeof settings.normalize === "boolean") {
         fd.append("normalize", String(settings.normalize));
@@ -283,6 +287,12 @@ export default function BatchUpload() {
               </Button>
               <Typography.Text type="secondary" className="capitalize">
                 Modelo actual: <b>{settings.model}</b>
+                {typeof settings.model_variant === "string" && settings.model_variant ? (
+                  <>
+                    {" "}
+                    (<b>{settings.model_variant}</b>)
+                  </>
+                ) : null}
               </Typography.Text>
             </Space>
           </>

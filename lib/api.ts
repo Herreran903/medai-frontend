@@ -7,6 +7,7 @@
  *     - text?: string              // texto plano (mutuamente excluyente con "file")
  *     - file?: File                // un solo archivo (mutuamente excluyente con "text")
  *     - model: string              // modelo de extracción
+ *     - model_variant?: string     // variante opcional del modelo (ver docs/api-contract.md)
  *     - normalize?: "true"|"false" // normalización de entidades
  *     - systems_csv?: string       // CSV de SABs (p. ej. "RXNORM,SNOMEDCT_US,ICD10CM")
  *     - restrict_types_csv?: string// CSV de tipos de entidad (p. ej. "DX")
@@ -18,6 +19,7 @@
  *   Request: FormData
  *     - files: File[]               // uno o más archivos (clave repetida "files")
  *     - model: string               // modelo de extracción
+ *     - model_variant?: string      // variante opcional del modelo (ver docs/api-contract.md)
  *     - save?: "true"|"false"       // por defecto True; aquí lo enviamos explícito
  *     - normalize?: "true"|"false"
  *     - systems_csv?: string        // CSV de SABs (p. ej. "RXNORM,SNOMEDCT_US,ICD10CM")

@@ -9,6 +9,7 @@
  */
 import {
   Form,
+  Input,
   InputNumber,
   Select,
   Button,
@@ -21,6 +22,15 @@ import {
 import { InfoCircleOutlined } from "@ant-design/icons";
 import { useModelSettings, type ModelKind } from "../providers/model-settings-provider";
 
+// Variants and defaults (UI only; backend will validate unknown variants)
+const LLM_VARIANTS = ["claude", "gpt", "local"] as const;
+
+function defaultVariantForModel(model: ModelKind): string | null {
+  if (model === "llm") return "claude";
+  if (model === "transformer") return "beto";
+  return null; // LSTM has no variants
+}
+
 const MODEL_OPTIONS: { label: string; value: ModelKind }[] = [
   { label: "Transformer", value: "transformer" },
   { label: "BiLSTM-CRF", value: "lstm" },
@@ -30,9 +40,11 @@ const MODEL_OPTIONS: { label: string; value: ModelKind }[] = [
 export default function DrawerSetting({ onClose }: { onClose?: () => void }) {
   const { settings, setSettings } = useModelSettings();
   const [form] = Form.useForm();
+  const watchModel = Form.useWatch<ModelKind>("model", form);
 
   const initialValues = {
     model: settings?.model ?? "transformer",
+    model_variant: settings?.model_variant ?? undefined,
     normalize: settings?.normalize ?? false,
     min_link_score: settings?.min_link_score ?? 0.6,
     max_candidates: settings?.max_candidates ?? 25,
@@ -43,10 +55,24 @@ export default function DrawerSetting({ onClose }: { onClose?: () => void }) {
       layout="vertical"
       form={form}
       initialValues={initialValues}
+      onValuesChange={(changed, all) => {
+        if (Object.prototype.hasOwnProperty.call(changed, "model")) {
+          const m = changed.model as ModelKind;
+          form.setFieldsValue({ model_variant: defaultVariantForModel(m) });
+        }
+      }}
       onFinish={(vals) => {
+        const variant =
+          vals.model === "lstm"
+            ? null
+            : typeof vals.model_variant === "string" && vals.model_variant.trim().length > 0
+              ? vals.model_variant.trim()
+              : defaultVariantForModel(vals.model as ModelKind);
+
         // Normalize numeric inputs and delegate enforcement of locked fields to the provider
         const payload = {
           ...vals,
+          model_variant: variant,
           min_link_score: Number(vals.min_link_score),
           max_candidates: Number(vals.max_candidates),
         };
@@ -61,6 +87,43 @@ export default function DrawerSetting({ onClose }: { onClose?: () => void }) {
       <Form.Item label="Modelo" name="model" rules={[{ required: true }]}>
         <Select options={MODEL_OPTIONS} />
       </Form.Item>
+
+      {watchModel === "llm" && (
+        <Form.Item
+          label="Variante LLM"
+          name="model_variant"
+          extra="Por defecto: claude. También disponibles: gpt, local."
+        >
+          <Select
+            options={[
+              { label: "Claude (default)", value: "claude" },
+              { label: "GPT", value: "gpt" },
+              { label: "Local (Ollama)", value: "local" },
+            ]}
+          />
+        </Form.Item>
+      )}
+
+      {watchModel === "transformer" && (
+        <Form.Item
+          label="Variante Transformer"
+          name="model_variant"
+          extra="Selecciona la variante (por defecto: beto)."
+        >
+          <Select
+            options={[
+              { label: "BETO (default)", value: "beto" },
+              { label: "RoBERTa", value: "roberta" },
+            ]}
+          />
+        </Form.Item>
+      )}
+
+      {watchModel === "lstm" && (
+        <Form.Item label="Variante" extra="LSTM no tiene variantes configurables.">
+          <Input value="N/A" disabled />
+        </Form.Item>
+      )}
 
       <Divider />
 

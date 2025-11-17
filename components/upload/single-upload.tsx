@@ -128,6 +128,10 @@ export default function SingleUpload() {
 
       // Configuración del modelo / normalización
       fd.append("model", settings.model);
+      // Variante opcional del modelo (según backend)
+      if (typeof settings.model_variant === "string" && settings.model_variant.trim().length > 0) {
+        fd.append("model_variant", settings.model_variant.trim());
+      }
       fd.append("normalize", String(settings.normalize));
 
       // Vocabularios y tipos bloqueados (definidos en el provider)
@@ -250,6 +254,12 @@ export default function SingleUpload() {
           </Button>
           <Typography.Text type="secondary" className="capitalize">
             Modelo actual: <b>{settings.model}</b>
+            {typeof settings.model_variant === "string" && settings.model_variant ? (
+              <>
+                {" "}
+                (<b>{settings.model_variant}</b>)
+              </>
+            ) : null}
           </Typography.Text>
         </Space>
       </Form>
