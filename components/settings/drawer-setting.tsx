@@ -23,7 +23,6 @@ import { InfoCircleOutlined } from "@ant-design/icons";
 import { useModelSettings, type ModelKind } from "../providers/model-settings-provider";
 
 // Variants and defaults (UI only; backend will validate unknown variants)
-const LLM_VARIANTS = ["claude", "gpt", "local"] as const;
 
 function defaultVariantForModel(model: ModelKind): string | null {
   if (model === "llm") return "claude";
@@ -55,7 +54,7 @@ export default function DrawerSetting({ onClose }: { onClose?: () => void }) {
       layout="vertical"
       form={form}
       initialValues={initialValues}
-      onValuesChange={(changed, all) => {
+      onValuesChange={(changed) => {
         if (Object.prototype.hasOwnProperty.call(changed, "model")) {
           const m = changed.model as ModelKind;
           form.setFieldsValue({ model_variant: defaultVariantForModel(m) });
