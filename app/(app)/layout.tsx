@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Button, Drawer, Space, Tooltip, Typography, Card } from "antd";
 import { SettingOutlined, TagsOutlined } from "@ant-design/icons";
-import { Activity } from "lucide-react";
+import Image from "next/image";
 import DrawerSetting from "@/components/settings/drawer-setting";
 import DrawerEntities from "@/components/entities/drawer-entities";
 
@@ -14,14 +14,16 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <>
       <main className="flex h-svh items-center justify-center overflow-hidden p-4 md:p-8">
-        <section className="flex h-full w-full max-w-5xl flex-col overflow-hidden xl:max-w-6xl">
-          <header className="mb-4 flex items-center justify-between">
+        <section className="flex h-full min-h-0 w-full max-w-5xl flex-col overflow-hidden xl:max-w-6xl">
+          <header className="mb-4 flex items-baseline justify-between">
             <div className="space-y-1">
-              <div className="flex items-center gap-2">
-                <Activity className="h-6 w-6 text-cyan-700" />
-                <Typography.Title level={3} className="!mb-0">
-                  MedAI
-                </Typography.Title>
+              <div className="flex items-end gap-2">
+                <Image src="/icon.svg" alt="MedAI" width={32} height={32} />
+                <span>
+                  <Typography.Title level={3} className="!mb-0 !p-0 !leading-none">
+                    MedAI
+                  </Typography.Title>
+                </span>
               </div>
               <Typography.Text type="secondary">
                 Analiza notas clínicas y reportes para extraer <b>parámetros ventilatorios</b> y
@@ -48,8 +50,18 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           {/* Tarjeta principal: ocupar alto disponible sin forzar scroll de la página.
               - El scroll ocurre dentro del contenido de la tarjeta cuando hay desborde.
               - Diseño sobrio con fondo claro translúcido y leve blur. */}
-          <Card className="relative flex min-h-0 w-full flex-1 flex-col overflow-hidden rounded-xl border border-slate-200/60 bg-white/80 shadow-md backdrop-blur-sm">
-            <div className="h-full overflow-auto p-4 sm:p-5 md:p-6 lg:p-8">{children}</div>
+          <Card
+            className="relative flex min-h-0 w-full flex-1 flex-col overflow-hidden rounded-xl border border-slate-200/60 bg-white/80 shadow-md backdrop-blur-sm"
+            styles={{
+              body: {
+                flex: 1,
+                minHeight: 0,
+                overflow: "auto",
+                padding: 0, // el padding lo manejamos en el wrapper interno
+              },
+            }}
+          >
+            <div className="p-4 sm:p-5 md:p-6 lg:p-8">{children}</div>
           </Card>
         </section>
       </main>

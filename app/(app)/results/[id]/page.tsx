@@ -41,7 +41,7 @@ export default function ResultPage() {
 
   return (
     <div className="relative">
-      <LoadingOverlay show={loading} text="Procesando extracción…" />
+      <LoadingOverlay show={true} text="Procesando extracción…" />
       <div className="mb-4 flex items-center justify-between">
         <Typography.Title level={4} className="!mb-0">
           Resultado

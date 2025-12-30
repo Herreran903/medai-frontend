@@ -38,7 +38,6 @@ function CodesList({ codes }: { codes?: Code[] }) {
         return (
           <Space key={`${c.system}-${c.code}-${idx}`} size={6} wrap>
             <Badge color="blue" text={<strong>{c.system}</strong>} />
-            <Tag>{c.code}</Tag>
             {c.display && <Typography.Text>{c.display}</Typography.Text>}
             {typeof c.score === "number" && (
               <Typography.Text type="secondary">· score {c.score.toFixed(2)}</Typography.Text>
@@ -217,7 +216,7 @@ export default function EntityResult({ data }: { data: ExtractResponse }) {
       ),
     },
     {
-      title: "Normalización (todos los sistemas)",
+      title: "Normalización",
       key: "codes",
       render: (e: Entity) => <CodesList codes={e.codes} />,
     },

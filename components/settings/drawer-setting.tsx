@@ -111,7 +111,7 @@ export default function DrawerSetting({ onClose }: { onClose?: () => void }) {
         >
           <Select
             options={[
-              { label: "BETO (default)", value: "beto" },
+              { label: "BETO", value: "beto" },
               { label: "RoBERTa", value: "roberta" },
             ]}
           />

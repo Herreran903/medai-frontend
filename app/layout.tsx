@@ -12,9 +12,41 @@ const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "MedAI · Ventilación mecánica",
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"),
+  title: {
+    default: "MedAI · Ventilación mecánica",
+    template: "%s · MedAI",
+  },
   description:
     "Analiza notas clínicas para extraer parámetros ventilatorios y variables relacionadas.",
+  applicationName: "MedAI",
+  authors: [{ name: "MedAI" }],
+  keywords: [
+    "medicina",
+    "IA clínica",
+    "ventilación mecánica",
+    "parámetros ventilatorios",
+    "historias clínicas",
+    "procesamiento de lenguaje natural",
+  ],
+  icons: {
+    icon: "/icon.ico",
+    shortcut: "/icon.ico",
+  },
+  openGraph: {
+    title: "MedAI · Ventilación mecánica",
+    description:
+      "Analiza notas clínicas para extraer parámetros ventilatorios y variables relacionadas.",
+    url: "/",
+    siteName: "MedAI",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "MedAI · Ventilación mecánica",
+    description:
+      "Analiza notas clínicas para extraer parámetros ventilatorios y variables relacionadas.",
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
