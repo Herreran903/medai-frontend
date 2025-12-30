@@ -1,3 +1,4 @@
+/** Terminology code attached to an extracted entity. */
 export type Code = {
   system: string;
   code: string;
@@ -6,6 +7,7 @@ export type Code = {
   source?: string;
 };
 
+/** Entity extracted from clinical text. */
 export type Entity = {
   type: string;
   text: string;
@@ -16,12 +18,14 @@ export type Entity = {
   codes?: Code[];
 };
 
+/** Full extraction response payload with entities and metadata. */
 export type ExtractResponse = {
   text: string;
   entities: Entity[];
   meta: Record<string, unknown>;
 };
 
+/** Acknowledgement for an extraction request, with optional inline result. */
 export type ExtractAck = {
   id: string;
   stored: boolean;
@@ -33,6 +37,7 @@ export type ExtractAck = {
   result?: ExtractResponse | null;
 };
 
+/** Item-level status for a batch extraction request. */
 export type BatchAckItem = {
   filename: string;
   id?: string | null;
@@ -42,6 +47,7 @@ export type BatchAckItem = {
   error?: string | null;
 };
 
+/** Response for batch extraction, containing item-level acknowledgements. */
 export type BatchAckResponse = {
   items: BatchAckItem[];
 };

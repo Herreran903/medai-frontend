@@ -1,7 +1,11 @@
 {
-  "entryPoints": ["components", "lib"],
+  "entryPoints": ["index.ts"],
   "tsconfig": "tsconfig.json",
   "plugin": ["typedoc-plugin-markdown"],
-  "out": "../docs/docs/api",
-  "readme": "none"
+  "out": "docs-api",
+  "readme": "none",
+  "excludePrivate": true,
+  "excludeProtected": true,
+  "excludeExternals": true,
+  "excludeInternal": true
 }

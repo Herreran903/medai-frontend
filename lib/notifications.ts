@@ -10,6 +10,7 @@
 
 import { message } from "antd";
 
+/** Function that closes a persistent notification. */
 export type CerrarFn = () => void;
 
 /** Muestra un mensaje informativo (~3s). */
@@ -54,5 +55,7 @@ function loading(texto = "Procesando…"): CerrarFn {
   return () => message.destroy(key);
 }
 
+/** Shared notification helper with info/success/error/loading shortcuts. */
 export const notify = { info, success, error, loading };
+/** Type helper for the notify API. */
 export type Notifier = typeof notify;

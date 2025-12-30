@@ -1,3 +1,4 @@
+/** Canonical entity labels used for coloring and descriptions. */
 export type BaseEntity =
   | "MODO"
   | "FIO2"
@@ -30,6 +31,7 @@ export type BaseEntity =
   | "PAO2"
   | "PAFI";
 
+/** Lookup table for entity colors and descriptions. */
 export const ENTITY_INFO: Record<BaseEntity, { color: `#${string}`; description: string }> = {
   // Configuración de ventilación
   MODO: {
@@ -80,10 +82,12 @@ export const ENTITY_INFO: Record<BaseEntity, { color: `#${string}`; description:
   PAFI: { color: "#8b5cf6", description: "PaFi (PaO₂/FiO₂)." },
 };
 
+/** Resolve the display color for a given entity label. */
 export function getEntityColor(label: string): string {
   return label in ENTITY_INFO ? ENTITY_INFO[label as BaseEntity].color : "#999999";
 }
 
+/** Resolve the description for a given entity label. */
 export function getEntityDescription(label: string): string | null {
   return label in ENTITY_INFO ? ENTITY_INFO[label as BaseEntity].description : null;
 }

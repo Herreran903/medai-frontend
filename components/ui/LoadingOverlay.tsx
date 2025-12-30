@@ -4,12 +4,15 @@ import React from "react";
 import { createPortal } from "react-dom";
 import { Spin, Typography } from "antd";
 
-type Props = {
+/** Props for the loading overlay portal. */
+export type LoadingOverlayProps = {
   show: boolean;
+  /** Optional text shown under the spinner. */
   text?: string;
 };
 
-const LoadingOverlay: React.FC<Props> = ({ show, text = "Procesando…" }) => {
+/** Full-screen loading overlay rendered as a portal into `document.body`. */
+const LoadingOverlay: React.FC<LoadingOverlayProps> = ({ show, text = "Procesando…" }) => {
   if (!show || typeof document === "undefined") return null;
 
   return createPortal(

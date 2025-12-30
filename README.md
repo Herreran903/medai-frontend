@@ -20,6 +20,16 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
+## Generación de documentación
+
+Para generar documentación API en Markdown con TypeDoc:
+
+```bash
+npm run docs:api
+```
+
+La salida queda en `docs-api/` (lista para copiar a un repo Docusaurus en `docs/api/front/`).
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:
