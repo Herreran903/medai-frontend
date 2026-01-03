@@ -1,36 +1,41 @@
 "use client";
 
 /**
- * BatchUpload()
- * Subida y extracción en lote para múltiples archivos.
+ * Batch upload component for the MedAI frontend.
  *
- * Contrato del endpoint backend (POST /extract-batch):
- * - FormData enviado por el frontend:
- *   - files: File[]                // uno o más archivos (clave repetida "files")
- *   - model: string                // modelo de extracción
- *   - save: "true" | "false"       // explícito; el frontend envía "true"
- *   - normalize: "true" | "false"
- *   - systems_csv: string          // CSV de SABs bloqueados (p. ej. "RXNORM,SNOMEDCT_US,ICD10CM")
- *   - restrict_types_csv: string   // CSV de tipos bloqueados (p. ej. "DX")
- *   - notes_meta: string           // JSON.stringify([{ filename, episode_id, note_date }])
- *                                  //  - episode_id: string | null (por archivo)
- *                                  //  - note_date: ISO string | null (por archivo)
- * - Respuesta (JSON):
- *   {
- *     items: Array<{
- *       filename: string;
- *       id?: string | null;
- *       stored: boolean;
- *       entity_count?: number | null;
- *       url?: string | null;
- *       error?: string | null;
- *     }>
- *   }
+ * This module provides the interface for processing multiple clinical notes
+ * in a single batch request. It allows users to upload multiple files,
+ * assign per-file metadata (episode ID, date), and submit them together
+ * for extraction.
  *
- * Notas:
- * - Los SABs y tipos se bloquean desde el provider y no son editables.
- * - notes_meta permite que el backend guarde por (episode_id, note_date) por archivo.
- * - La tabla de resultados incluye un link "Ver entidades" cuando el backend devuelve id.
+ * @remarks
+ * **Workflow:**
+ * 1. User uploads multiple clinical document files
+ * 2. User assigns episode ID and date/time to each file in the metadata table
+ * 3. Form validates that all files have complete metadata
+ * 4. Request is sent to the Backend API batch extraction endpoint
+ * 5. Results table displays per-file status with links to individual results
+ *
+ * **Supported File Types:**
+ * - Plain text (.txt)
+ * - PDF documents (.pdf)
+ * - Microsoft Word (.doc, .docx)
+ *
+ * @example
+ * ```tsx
+ * import BatchUpload from "@/components/upload/batch-upload";
+ *
+ * function BatchExtractionPage() {
+ *   return (
+ *     <div className="max-w-4xl mx-auto">
+ *       <h1>Batch Entity Extraction</h1>
+ *       <BatchUpload />
+ *     </div>
+ *   );
+ * }
+ * ```
+ *
+ * @module batch-upload
  */
 
 import { useState } from "react";
@@ -49,19 +54,45 @@ import { toUserMessage } from "@/lib/http";
 
 const { Dragger } = Upload;
 
-type RowResult = {
-  key: string;
-  filename: string;
-  status: "procesando" | "ok" | "error";
-  count?: number;
-  error?: string;
-  id?: string;
-};
-
-type FileRow = { key: string; filename: string };
-
-/** La respuesta tipada viene dada por BatchAckResponse.items (ver lib/types). */
-
+/**
+ * Batch extraction form component.
+ *
+ * This component provides the interface for processing multiple clinical notes
+ * in a single batch request. It manages file uploads, per-file metadata collection,
+ * batch submission, and results display.
+ *
+ * @remarks
+ * **State Management:**
+ * The component maintains separate state for:
+ * - `files` — The list of uploaded files
+ * - `dates` — Per-file date/time values keyed by file UID
+ * - `episodes` — Per-file episode IDs keyed by file UID
+ * - `rows` — Processing results for display in the results table
+ *
+ * **Backend Contract:**
+ * The backend expects file-level metadata in the `notes_meta` JSON field,
+ * which maps filenames to their associated episode IDs and note dates.
+ *
+ * **Results Display:**
+ * After submission, the component switches to a results-only view showing
+ * per-file status, entity counts, and links to individual result pages.
+ *
+ * @returns A React element containing the batch upload form and results table.
+ *
+ * @example
+ * ```tsx
+ * // In a page component
+ * export default function BatchPage() {
+ *   return (
+ *     <div className="container">
+ *       <h1>Batch Entity Extraction</h1>
+ *       <p>Upload multiple clinical notes for processing.</p>
+ *       <BatchUpload />
+ *     </div>
+ *   );
+ * }
+ * ```
+ */
 export default function BatchUpload() {
   const { settings } = useModelSettings();
   const [files, setFiles] = useState<UploadFile[]>([]);
@@ -72,8 +103,15 @@ export default function BatchUpload() {
   const [form] = Form.useForm();
   const [showResultsOnly, setShowResultsOnly] = useState(false);
 
+  /**
+   * Transforms uploaded files into table data source format.
+   */
   const preData: FileRow[] = files.map((f) => ({ key: f.uid, filename: f.name }));
 
+  /**
+   * Column definitions for the file metadata table.
+   * @internal
+   */
   const preColumns: ColumnsType<FileRow> = [
     { title: "Archivo", dataIndex: "filename", key: "filename" },
     {
@@ -82,7 +120,7 @@ export default function BatchUpload() {
       key: "episode",
       render: (uid: string) => (
         <Input
-          placeholder="ID/Episodio"
+          placeholder="ID de episodio"
           value={episodes[uid] ?? ""}
           onChange={(e) => setEpisodes((prev) => ({ ...prev, [uid]: e.target.value }))}
         />
@@ -104,8 +142,16 @@ export default function BatchUpload() {
     },
   ];
 
+  /**
+   * Prevents automatic upload; files are submitted manually.
+   * @internal
+   */
   const beforeUpload: UploadProps["beforeUpload"] = () => false;
 
+  /**
+   * Handles file list changes and synchronizes metadata state.
+   * @internal
+   */
   const onChange: UploadProps["onChange"] = (info: UploadChangeParam<UploadFile>) => {
     const nextList = info.fileList as UploadFile[];
     setFiles(nextList);
@@ -125,6 +171,10 @@ export default function BatchUpload() {
     });
   };
 
+  /**
+   * Handles file removal and cleans up associated metadata.
+   * @internal
+   */
   const onRemove: UploadProps["onRemove"] = (f) => {
     setFiles((prev) => prev.filter((x) => x.uid !== f.uid));
     setDates((prev) => {
@@ -140,13 +190,17 @@ export default function BatchUpload() {
     return true;
   };
 
+  /**
+   * Handles form submission and batch extraction request.
+   * @internal
+   */
   const onFinish = async () => {
     if (!files.length) {
       notify.info("Selecciona archivos primero.");
       return;
     }
 
-    // Validar que cada archivo tenga episodio y fecha asignados
+    /* Validate that each file has episode and date metadata. */
     const missing = files.filter((f) => {
       const ep = episodes[f.uid]?.trim();
       const dt = dates[f.uid];
@@ -154,28 +208,28 @@ export default function BatchUpload() {
     });
     if (missing.length) {
       notify.error(
-        "Falta completar episodio y fecha para uno o más archivos. Indica el ID del episodio y selecciona la fecha para cada archivo."
+        "Falta completar episodio o fecha para uno o mas archivos. Indica el ID del episodio y selecciona la fecha para cada archivo."
       );
       return;
     }
 
-    let cerrarCargando: (() => void) | null = null;
+    let closeLoading: (() => void) | null = null;
     try {
       setLoading(true);
-      cerrarCargando = notify.loading("Procesando extracción…");
+      closeLoading = notify.loading("Procesando extraccion por lote…");
 
       const fd = new FormData();
       files.forEach((f) => {
         if (f.originFileObj) fd.append("files", f.originFileObj);
       });
 
-      // Campos esperados por el endpoint
+      /* Backend API contract fields. */
       fd.append("model", settings.model);
-      // Variante opcional del modelo (según backend)
+      /* Optional model variant, when supported by the backend. */
       if (typeof settings.model_variant === "string" && settings.model_variant.trim().length > 0) {
         fd.append("model_variant", settings.model_variant.trim());
       }
-      fd.append("save", "true"); // explícito aunque el backend por defecto sea True
+      fd.append("save", "true");
       if (typeof settings.normalize === "boolean") {
         fd.append("normalize", String(settings.normalize));
       }
@@ -186,7 +240,7 @@ export default function BatchUpload() {
         fd.append("restrict_types_csv", settings.restrict_types.join(","));
       }
 
-      // Metadatos por archivo (para que el backend guarde por episodio/fecha)
+      /* Per-file metadata so the backend can persist episode and note date. */
       const notesMeta = files.map((f) => ({
         filename: f.name,
         episode_id: (episodes[f.uid]?.trim() || null) as string | null,
@@ -194,12 +248,12 @@ export default function BatchUpload() {
       }));
       fd.append("notes_meta", JSON.stringify(notesMeta));
 
-      setRows(files.map((f) => ({ key: f.uid, filename: f.name, status: "procesando" })));
+      setRows(files.map((f) => ({ key: f.uid, filename: f.name, status: "processing" })));
 
-      // Llamado tipado al backend
+      /* Typed Backend API response. */
       const resp: BatchAckResponse = await extractEntitiesBatch(fd);
 
-      // Mapeo a filas de la tabla desde la respuesta tipada
+      /* Map backend acknowledgement items into table rows. */
       const items = Array.isArray(resp?.items) ? resp.items : [];
       const mapped: RowResult[] = items.map((it, idx) => {
         const hasError = Boolean(it.error);
@@ -208,7 +262,7 @@ export default function BatchUpload() {
           filename: it.filename ?? `#${idx + 1}`,
           status: hasError ? "error" : "ok",
           count: typeof it.entity_count === "number" ? it.entity_count : undefined,
-          error: hasError ? (it.error ?? "Error en procesamiento") : undefined,
+          error: hasError ? (it.error ?? "Error de procesamiento") : undefined,
           id: typeof it.id === "string" ? it.id : undefined,
         };
       });
@@ -220,7 +274,7 @@ export default function BatchUpload() {
       if (errorCount > 0) {
         notify.error(`${errorCount} archivo(s) fallaron en el lote`);
       } else {
-        notify.success("Extracción completada");
+        notify.success("Extraccion completada");
       }
     } catch (e) {
       const msg = toUserMessage(e);
@@ -228,10 +282,14 @@ export default function BatchUpload() {
       setRows((prev) => prev.map((r) => ({ ...r, status: "error", error: r.error ?? msg })));
     } finally {
       setLoading(false);
-      if (cerrarCargando) cerrarCargando();
+      if (closeLoading) closeLoading();
     }
   };
 
+  /**
+   * Resets all form state to allow a new batch upload.
+   * @internal
+   */
   const clearAll = () => {
     setFiles([]);
     setDates({});
@@ -244,9 +302,7 @@ export default function BatchUpload() {
   return (
     <div className="space-y-3">
       <Form layout="vertical" form={form} onFinish={onFinish}>
-        {/* Muestra un overlay de carga mientras se procesa la extracción */}
-        <LoadingOverlay show={loading} text="Procesando extracción…" />
-        {/* Este endpoint no requiere campos adicionales en el formulario */}
+        <LoadingOverlay show={loading} text="Procesando extraccion por lote…" />
 
         {!showResultsOnly && (
           <>
@@ -261,11 +317,9 @@ export default function BatchUpload() {
               <p className="ant-upload-drag-icon">
                 <InboxOutlined />
               </p>
-              <p className="ant-upload-text">
-                Arrastra o haz clic para seleccionar varios archivos
-              </p>
+              <p className="ant-upload-text">Arrastra o haz clic para seleccionar varios archivos</p>
               <p className="ant-upload-hint">
-                Puedes seleccionar varios archivos. Se procesarán en un solo lote.
+                Puedes seleccionar varios archivos. Se procesaran en un solo lote.
               </p>
             </Dragger>
 
@@ -277,13 +331,13 @@ export default function BatchUpload() {
               columns={preColumns}
               dataSource={preData}
               pagination={false}
-              locale={{ emptyText: "Sin archivos" }}
+              locale={{ emptyText: "Sin archivos seleccionados" }}
               rowKey="key"
             />
 
             <Space style={{ marginTop: 12 }}>
               <Button type="primary" htmlType="submit" loading={loading} disabled={!files.length}>
-                Iniciar extracción
+                Iniciar extraccion
               </Button>
               <Typography.Text type="secondary" className="capitalize">
                 Modelo actual: <b>{settings.model}</b>
@@ -299,12 +353,11 @@ export default function BatchUpload() {
         )}
       </Form>
 
-      {/* Resultados */}
       {rows.length > 0 && (
         <>
           <div className="flex items-center justify-between" style={{ marginTop: 16 }}>
             <Typography.Title level={5} style={{ margin: 0 }}>
-              Resultados de la extracción
+              Resultados de la extraccion
             </Typography.Title>
             <Button onClick={clearAll}>Limpiar</Button>
           </div>
@@ -313,11 +366,20 @@ export default function BatchUpload() {
             rowKey="key"
             columns={[
               { title: "Archivo", dataIndex: "filename" },
-              { title: "Estado", dataIndex: "status" },
+              {
+                title: "Estado",
+                dataIndex: "status",
+                render: (status: RowResult["status"]) =>
+                  status === "processing"
+                    ? "Procesando"
+                    : status === "ok"
+                      ? "Completado"
+                      : "Error",
+              },
               { title: "Entidades", dataIndex: "count" },
               { title: "Error", dataIndex: "error" },
               {
-                title: "Acción",
+                title: "Accion",
                 key: "action",
                 render: (_: unknown, r: RowResult) =>
                   r.id ? <a href={`/results/${r.id}`}>Ver entidades</a> : null,
@@ -332,3 +394,63 @@ export default function BatchUpload() {
     </div>
   );
 }
+
+/**
+ * Table row type for displaying batch processing results.
+ *
+ * Represents the status and outcome of a single file within a batch
+ * extraction request, including entity count and navigation link.
+ */
+type RowResult = {
+  /**
+   * Stable key for React table rendering.
+   */
+  key: string;
+
+  /**
+   * Original filename provided by the user.
+   */
+  filename: string;
+
+  /**
+   * Processing status for the file.
+   *
+   * - `processing` — Currently being processed
+   * - `ok` — Successfully processed
+   * - `error` — Processing failed
+   */
+  status: "processing" | "ok" | "error";
+
+  /**
+   * Total number of extracted entities when available.
+   */
+  count?: number;
+
+  /**
+   * Error message returned by the Backend API when processing failed.
+   */
+  error?: string;
+
+  /**
+   * Backend note ID used to navigate to individual results.
+   */
+  id?: string;
+};
+
+/**
+ * Lightweight file row type for the metadata collection table.
+ *
+ * Used to display uploaded files and collect per-file metadata
+ * (episode ID, date) before batch submission.
+ */
+type FileRow = {
+  /**
+   * Stable key tied to the upload component's file UID.
+   */
+  key: string;
+
+  /**
+   * User-visible filename displayed in the metadata table.
+   */
+  filename: string;
+};

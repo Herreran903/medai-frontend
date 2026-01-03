@@ -1,5 +1,26 @@
 "use client";
 
+/**
+ * Application layout for the MedAI extraction interface.
+ *
+ * This layout wraps all pages within the (app) route group, providing the
+ * main application shell with header, navigation controls, and slide-out
+ * drawers for settings and entity reference.
+ *
+ * @remarks
+ * **Layout Structure:**
+ * - Header with logo, tagline, and action buttons
+ * - Main content card with internal scrolling
+ * - Settings drawer for model configuration
+ * - Entities drawer for entity type reference
+ *
+ * **Responsive Design:**
+ * The layout adapts to different screen sizes with responsive padding
+ * and a maximum width constraint for optimal readability.
+ *
+ * @module app/(app)/layout
+ */
+
 import { useState } from "react";
 import { Button, Drawer, Space, Tooltip, Typography, Card } from "antd";
 import { SettingOutlined, TagsOutlined } from "@ant-design/icons";
@@ -7,6 +28,17 @@ import Image from "next/image";
 import DrawerSetting from "@/components/settings/drawer-setting";
 import DrawerEntities from "@/components/entities/drawer-entities";
 
+/**
+ * Application shell layout component.
+ *
+ * Provides the main application structure including header, content area,
+ * and slide-out drawers for settings and entity reference. The layout
+ * manages drawer visibility state and renders child pages within a
+ * scrollable content card.
+ *
+ * @param props - Component props containing children to render.
+ * @returns The application layout with header, content, and drawers.
+ */
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const [openConfig, setOpenConfig] = useState(false);
   const [openEntities, setOpenEntities] = useState(false);
@@ -26,8 +58,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 </span>
               </div>
               <Typography.Text type="secondary">
-                Analiza notas clínicas y reportes para extraer <b>parámetros ventilatorios</b> y
-                otras variables relevantes.
+                Analiza notas clinicas y reportes para extraer <b>parametros ventilatorios</b> y
+                otras variables clinicas relevantes.
               </Typography.Text>
             </div>
             <Space>
@@ -47,9 +79,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               </Tooltip>
             </Space>
           </header>
-          {/* Tarjeta principal: ocupar alto disponible sin forzar scroll de la página.
-              - El scroll ocurre dentro del contenido de la tarjeta cuando hay desborde.
-              - Diseño sobrio con fondo claro translúcido y leve blur. */}
+          {/* Main content card: fills available height without forcing page scroll.
+              - Scrolling occurs within the card content when overflow occurs.
+              - Clean design with translucent background and subtle blur. */}
           <Card
             className="relative flex min-h-0 w-full flex-1 flex-col overflow-hidden rounded-xl border border-slate-200/60 bg-white/80 shadow-md backdrop-blur-sm"
             styles={{
@@ -57,7 +89,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
                 flex: 1,
                 minHeight: 0,
                 overflow: "auto",
-                padding: 0, // el padding lo manejamos en el wrapper interno
+                padding: 0 /* padding is handled by the inner wrapper */,
               },
             }}
           >
@@ -66,7 +98,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         </section>
       </main>
       <Drawer
-        title="Ajustes de extracción"
+        title="Ajustes de extraccion"
         placement="right"
         width={380}
         open={openConfig}
