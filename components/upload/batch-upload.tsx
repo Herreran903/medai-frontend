@@ -317,7 +317,9 @@ export default function BatchUpload() {
               <p className="ant-upload-drag-icon">
                 <InboxOutlined />
               </p>
-              <p className="ant-upload-text">Arrastra o haz clic para seleccionar varios archivos</p>
+              <p className="ant-upload-text">
+                Arrastra o haz clic para seleccionar varios archivos
+              </p>
               <p className="ant-upload-hint">
                 Puedes seleccionar varios archivos. Se procesaran en un solo lote.
               </p>
@@ -370,11 +372,7 @@ export default function BatchUpload() {
                 title: "Estado",
                 dataIndex: "status",
                 render: (status: RowResult["status"]) =>
-                  status === "processing"
-                    ? "Procesando"
-                    : status === "ok"
-                      ? "Completado"
-                      : "Error",
+                  status === "processing" ? "Procesando" : status === "ok" ? "Completado" : "Error",
               },
               { title: "Entidades", dataIndex: "count" },
               { title: "Error", dataIndex: "error" },
