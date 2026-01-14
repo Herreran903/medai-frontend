@@ -151,9 +151,10 @@ export default function DrawerSetting({ onClose }: DrawerSettingProps) {
   const initialValues = {
     model: settings?.model ?? "transformer",
     model_variant: settings?.model_variant ?? undefined,
-    normalize: settings?.normalize ?? false,
-    min_link_score: settings?.min_link_score ?? 0.6,
-    max_candidates: settings?.max_candidates ?? 25,
+    // Normalizacion deshabilitada temporalmente; se dejan valores como referencia.
+    // normalize: settings?.normalize ?? false,
+    // min_link_score: settings?.min_link_score ?? 0.6,
+    // max_candidates: settings?.max_candidates ?? 25,
   };
 
   return (
@@ -180,8 +181,9 @@ export default function DrawerSetting({ onClose }: DrawerSettingProps) {
         const payload = {
           ...vals,
           model_variant: variant,
-          min_link_score: Number(vals.min_link_score),
-          max_candidates: Number(vals.max_candidates),
+          // Normalizacion deshabilitada temporalmente; se dejan campos como referencia.
+          // min_link_score: Number(vals.min_link_score),
+          // max_candidates: Number(vals.max_candidates),
         };
         setSettings(payload);
         onClose?.();
@@ -232,6 +234,7 @@ export default function DrawerSetting({ onClose }: DrawerSettingProps) {
         </Form.Item>
       )}
 
+      {/* Normalizacion deshabilitada temporalmente; se deja el bloque como referencia.
       <Divider />
 
       <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
@@ -273,6 +276,7 @@ export default function DrawerSetting({ onClose }: DrawerSettingProps) {
       >
         <InputNumber min={1} max={100} style={{ width: "100%" }} />
       </Form.Item>
+      */}
 
       <Space style={{ marginTop: 8 }}>
         <Button onClick={() => form.resetFields()}>Restablecer</Button>

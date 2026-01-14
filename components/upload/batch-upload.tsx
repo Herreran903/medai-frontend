@@ -230,15 +230,16 @@ export default function BatchUpload() {
         fd.append("model_variant", settings.model_variant.trim());
       }
       fd.append("save", "true");
-      if (typeof settings.normalize === "boolean") {
-        fd.append("normalize", String(settings.normalize));
-      }
-      if (settings.systems?.length) {
-        fd.append("systems_csv", settings.systems.join(","));
-      }
-      if (settings.restrict_types?.length) {
-        fd.append("restrict_types_csv", settings.restrict_types.join(","));
-      }
+      // Normalizacion deshabilitada temporalmente; se deja la logica como referencia.
+      // if (typeof settings.normalize === "boolean") {
+      //   fd.append("normalize", String(settings.normalize));
+      // }
+      // if (settings.systems?.length) {
+      //   fd.append("systems_csv", settings.systems.join(","));
+      // }
+      // if (settings.restrict_types?.length) {
+      //   fd.append("restrict_types_csv", settings.restrict_types.join(","));
+      // }
 
       /* Per-file metadata so the backend can persist episode and note date. */
       const notesMeta = files.map((f) => ({

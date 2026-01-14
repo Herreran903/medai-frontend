@@ -105,14 +105,15 @@ type EntityResultProps = {
  *
  * @internal
  */
-function systemLink(system: string, code: string): string | null {
-  const s = (system || "").toUpperCase();
-  if (s === "RXNORM") return `https://rxnav.nlm.nih.gov/REST/rxcui/${encodeURIComponent(code)}`;
-  if (s.startsWith("SNOMED"))
-    return `https://browser.ihtsdotools.org/?perspective=full&conceptId=${encodeURIComponent(code)}`;
-  if (s === "ICD10CM") return `https://icd.codes/icd10cm/${encodeURIComponent(code)}`;
-  return null;
-}
+// Normalizacion deshabilitada temporalmente; se deja la funcion como referencia.
+// function systemLink(system: string, code: string): string | null {
+//   const s = (system || "").toUpperCase();
+//   if (s === "RXNORM") return `https://rxnav.nlm.nih.gov/REST/rxcui/${encodeURIComponent(code)}`;
+//   if (s.startsWith("SNOMED"))
+//     return `https://browser.ihtsdotools.org/?perspective=full&conceptId=${encodeURIComponent(code)}`;
+//   if (s === "ICD10CM") return `https://icd.codes/icd10cm/${encodeURIComponent(code)}`;
+//   return null;
+// }
 
 /**
  * Renders a list of normalized codes for a single entity.
@@ -126,46 +127,46 @@ function systemLink(system: string, code: string): string | null {
  *
  * @internal
  */
-function CodesList({ codes }: CodesListProps) {
-  if (!codes?.length) return <Typography.Text type="secondary">Sin codigos</Typography.Text>;
-  return (
-    <Space direction="vertical" size={4}>
-      {codes.map((c, idx) => {
-        const url = systemLink(c.system, c.code);
-        return (
-          <Space key={`${c.system}-${c.code}-${idx}`} size={6} wrap>
-            <Badge color="blue" text={<strong>{c.system}</strong>} />
-            {c.display && <Typography.Text>{c.display}</Typography.Text>}
-            {typeof c.score === "number" && (
-              <Typography.Text type="secondary">· puntaje {c.score.toFixed(2)}</Typography.Text>
-            )}
-            <Button
-              size="small"
-              type="text"
-              icon={<CopyOutlined />}
-              onClick={() => {
-                navigator.clipboard.writeText(`${c.system}:${c.code}`);
-                message.success("Copiado");
-              }}
-            />
-            {url && (
-              <Button
-                size="small"
-                type="link"
-                icon={<LinkOutlined />}
-                href={url}
-                target="_blank"
-                rel="noreferrer"
-              >
-                Abrir
-              </Button>
-            )}
-          </Space>
-        );
-      })}
-    </Space>
-  );
-}
+// function CodesList({ codes }: CodesListProps) {
+//   if (!codes?.length) return <Typography.Text type="secondary">Sin codigos</Typography.Text>;
+//   return (
+//     <Space direction="vertical" size={4}>
+//       {codes.map((c, idx) => {
+//         const url = systemLink(c.system, c.code);
+//         return (
+//           <Space key={`${c.system}-${c.code}-${idx}`} size={6} wrap>
+//             <Badge color="blue" text={<strong>{c.system}</strong>} />
+//             {c.display && <Typography.Text>{c.display}</Typography.Text>}
+//             {typeof c.score === "number" && (
+//               <Typography.Text type="secondary">· puntaje {c.score.toFixed(2)}</Typography.Text>
+//             )}
+//             <Button
+//               size="small"
+//               type="text"
+//               icon={<CopyOutlined />}
+//               onClick={() => {
+//                 navigator.clipboard.writeText(`${c.system}:${c.code}`);
+//                 message.success("Copiado");
+//               }}
+//             />
+//             {url && (
+//               <Button
+//                 size="small"
+//                 type="link"
+//                 icon={<LinkOutlined />}
+//                 href={url}
+//                 target="_blank"
+//                 rel="noreferrer"
+//               >
+//                 Abrir
+//               </Button>
+//             )}
+//           </Space>
+//         );
+//       })}
+//     </Space>
+//   );
+// }
 
 /**
  * Selects the highest-confidence normalized code from an entity.
@@ -179,14 +180,14 @@ function CodesList({ codes }: CodesListProps) {
  *
  * @internal
  */
-function getMaxNormalizatedCode(e: Entity): Code | null {
-  if (!e?.codes?.length && !e?.code) return null;
-  const list = e.codes?.length ? e.codes : [{ system: "—", code: e.code || "" }];
-  return list.reduce(
-    (max, c) => (c.score && (!max.score || c.score > max.score) ? c : max),
-    list[0]
-  );
-}
+// function getMaxNormalizatedCode(e: Entity): Code | null {
+//   if (!e?.codes?.length && !e?.code) return null;
+//   const list = e.codes?.length ? e.codes : [{ system: "—", code: e.code || "" }];
+//   return list.reduce(
+//     (max, c) => (c.score && (!max.score || c.score > max.score) ? c : max),
+//     list[0]
+//   );
+// }
 
 /**
  * Tooltip content showing the best normalized code for an entity.
@@ -200,11 +201,11 @@ function getMaxNormalizatedCode(e: Entity): Code | null {
  *
  * @internal
  */
-function CodeTooltip({ e }: CodeTooltipProps) {
-  const top = getMaxNormalizatedCode(e);
-  const code = top?.display || top?.code || "Sin normalizacion";
-  return <span className="capitalize">{code}</span>;
-}
+// function CodeTooltip({ e }: CodeTooltipProps) {
+//   const top = getMaxNormalizatedCode(e);
+//   const code = top?.display || top?.code || "Sin normalizacion";
+//   return <span className="capitalize">{code}</span>;
+// }
 
 /**
  * Builds a highlighted clinical note with inline entity markers.
@@ -255,23 +256,24 @@ function buildHighlighted(text: string, entities: Entity[]) {
       </mark>
     );
 
-    const isNormalized = Boolean(ent.code || (ent.codes && ent.codes.length));
-
-    if (isNormalized) {
-      chunks.push(
-        <Tooltip
-          className="max-w-lg"
-          key={`tt-${start}-${end}`}
-          placement="top"
-          title={<CodeTooltip e={ent} />}
-          color={getEntityColor(type)}
-        >
-          {mark}
-        </Tooltip>
-      );
-      cursor = end;
-      continue;
-    }
+    // Normalizacion deshabilitada temporalmente; se deja la logica como referencia.
+    // const isNormalized = Boolean(ent.code || (ent.codes && ent.codes.length));
+    //
+    // if (isNormalized) {
+    //   chunks.push(
+    //     <Tooltip
+    //       className="max-w-lg"
+    //       key={`tt-${start}-${end}`}
+    //       placement="top"
+    //       title={<CodeTooltip e={ent} />}
+    //       color={getEntityColor(type)}
+    //     >
+    //       {mark}
+    //     </Tooltip>
+    //   );
+    //   cursor = end;
+    //   continue;
+    // }
 
     chunks.push(mark);
 
@@ -339,10 +341,11 @@ export default function EntityResult({ data }: EntityResultProps) {
    */
   const types = useMemo(() => Object.keys(entitiesByType).sort(), [entitiesByType]);
 
-  /**
-   * Current vocabulary system filter for the normalization table.
-   */
-  const [systemFilter, setSystemFilter] = useState<string | "ALL">("ALL");
+  // Normalizacion deshabilitada temporalmente; se deja la logica como referencia.
+  // /**
+  //  * Current vocabulary system filter for the normalization table.
+  //  */
+  // const [systemFilter, setSystemFilter] = useState<string | "ALL">("ALL");
 
   /**
    * Legend showing all entity types with their colors.
@@ -363,67 +366,67 @@ export default function EntityResult({ data }: EntityResultProps) {
   const metaEntries = Object.entries(data.meta ?? {});
   const hasMeta = metaEntries.length > 0;
 
-  /**
-   * Entities filtered by the selected vocabulary system.
-   */
-  const normalizedEntities = useMemo(() => {
-    const all = (data.entities || []).filter((e) => (e.codes && e.codes.length) || e.code);
-    if (systemFilter === "ALL") return all;
-    return all
-      .map((e) => ({
-        ...e,
-        codes: (e.codes || []).filter((c) => c.system?.toUpperCase() === systemFilter),
-      }))
-      .filter((e) => (e.codes && e.codes.length) || e.code);
-  }, [data.entities, systemFilter]);
+  // /**
+  //  * Entities filtered by the selected vocabulary system.
+  //  */
+  // const normalizedEntities = useMemo(() => {
+  //   const all = (data.entities || []).filter((e) => (e.codes && e.codes.length) || e.code);
+  //   if (systemFilter === "ALL") return all;
+  //   return all
+  //     .map((e) => ({
+  //       ...e,
+  //       codes: (e.codes || []).filter((c) => c.system?.toUpperCase() === systemFilter),
+  //     }))
+  //     .filter((e) => (e.codes && e.codes.length) || e.code);
+  // }, [data.entities, systemFilter]);
 
-  /**
-   * Column definitions for the normalization table.
-   */
-  const columns = [
-    {
-      title: "Entidad",
-      dataIndex: "text",
-      key: "text",
-      render: (text: string, e: Entity) => (
-        <Space direction="vertical" size={0}>
-          <Typography.Text strong className="capitalize">
-            {text}
-          </Typography.Text>
-          <Tag
-            color={getEntityColor(e.type) + "33"}
-            style={{ color: "#111827", borderColor: getEntityColor(e.type) }}
-          >
-            {e.type}
-          </Tag>
-        </Space>
-      ),
-    },
-    {
-      title: "Normalizacion",
-      key: "codes",
-      render: (e: Entity) => <CodesList codes={e.codes} />,
-    },
-  ];
+  // /**
+  //  * Column definitions for the normalization table.
+  //  */
+  // const columns = [
+  //   {
+  //     title: "Entidad",
+  //     dataIndex: "text",
+  //     key: "text",
+  //     render: (text: string, e: Entity) => (
+  //       <Space direction="vertical" size={0}>
+  //         <Typography.Text strong className="capitalize">
+  //           {text}
+  //         </Typography.Text>
+  //         <Tag
+  //           color={getEntityColor(e.type) + "33"}
+  //           style={{ color: "#111827", borderColor: getEntityColor(e.type) }}
+  //         >
+  //           {e.type}
+  //         </Tag>
+  //       </Space>
+  //     ),
+  //   },
+  //   {
+  //     title: "Normalizacion",
+  //     key: "codes",
+  //     render: (e: Entity) => <CodesList codes={e.codes} />,
+  //   },
+  // ];
 
-  /**
-   * Header with vocabulary system filter controls.
-   */
-  const normHeader = (
-    <Space style={{ width: "100%", justifyContent: "space-between" }}>
-      <Typography.Text>Filtrar por sistema</Typography.Text>
-      <Segmented
-        value={systemFilter}
-        onChange={(val) => setSystemFilter(val)}
-        options={[
-          { label: "Todos", value: "ALL" },
-          { label: "RxNorm", value: "RXNORM" },
-          { label: "SNOMED", value: "SNOMEDCT_US" },
-          { label: "ICD-10-CM", value: "ICD10CM" },
-        ]}
-      />
-    </Space>
-  );
+  // /**
+  //  * Header with vocabulary system filter controls.
+  //  */
+  // const normHeader = (
+  //   <Space style={{ width: "100%", justifyContent: "space-between" }}>
+  //     <Typography.Text>Filtrar por sistema</Typography.Text>
+  //     <Segmented
+  //       value={systemFilter}
+  //       onChange={(val) => setSystemFilter(val)}
+  //       options={[
+  //         { label: "Todos", value: "ALL" },
+  //         { label: "RxNorm", value: "RXNORM" },
+  //         { label: "SNOMED", value: "SNOMEDCT_US" },
+  //         { label: "ICD-10-CM", value: "ICD10CM" },
+  //       ]}
+  //     />
+  //   </Space>
+  // );
 
   return (
     <Space direction="vertical" className="w-full">
@@ -499,27 +502,28 @@ export default function EntityResult({ data }: EntityResultProps) {
                 </div>
               ),
             },
-            {
-              key: "norm",
-              label: "Normalizacion",
-              children: (
-                <div style={{ maxHeight: 420, overflow: "auto" }}>
-                  <div style={{ marginBottom: 8 }}>{normHeader}</div>
-                  <Table
-                    size="small"
-                    rowKey={(e) => `${e.type}-${e.start}-${e.end}-${e.text}`}
-                    dataSource={normalizedEntities}
-                    columns={columns}
-                    pagination={{ pageSize: 6, size: "small", hideOnSinglePage: true }}
-                  />
-                  {normalizedEntities.length === 0 && (
-                    <Typography.Text type="secondary">
-                      No hay entidades con codigos normalizados.
-                    </Typography.Text>
-                  )}
-                </div>
-              ),
-            },
+            // Normalizacion deshabilitada temporalmente; se deja la vista como referencia.
+            // {
+            //   key: "norm",
+            //   label: "Normalizacion",
+            //   children: (
+            //     <div style={{ maxHeight: 420, overflow: "auto" }}>
+            //       <div style={{ marginBottom: 8 }}>{normHeader}</div>
+            //       <Table
+            //         size="small"
+            //         rowKey={(e) => `${e.type}-${e.start}-${e.end}-${e.text}`}
+            //         dataSource={normalizedEntities}
+            //         columns={columns}
+            //         pagination={{ pageSize: 6, size: "small", hideOnSinglePage: true }}
+            //       />
+            //       {normalizedEntities.length === 0 && (
+            //         <Typography.Text type="secondary">
+            //           No hay entidades con codigos normalizados.
+            //         </Typography.Text>
+            //       )}
+            //     </div>
+            //   ),
+            // },
           ]}
         />
       </Card>

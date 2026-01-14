@@ -298,23 +298,24 @@ export default function SingleUpload() {
       if (typeof settings.model_variant === "string" && settings.model_variant.trim().length > 0) {
         fd.append("model_variant", settings.model_variant.trim());
       }
-      fd.append("normalize", String(settings.normalize));
+      // Normalizacion deshabilitada temporalmente; se deja la logica como referencia.
+      // fd.append("normalize", String(settings.normalize));
 
       /* Locked vocabularies and entity types defined by the provider. */
-      if (settings.systems?.length) {
-        fd.append("systems_csv", settings.systems.join(","));
-      }
-      if (settings.restrict_types?.length) {
-        fd.append("restrict_types_csv", settings.restrict_types.join(","));
-      }
+      // if (settings.systems?.length) {
+      //   fd.append("systems_csv", settings.systems.join(","));
+      // }
+      // if (settings.restrict_types?.length) {
+      //   fd.append("restrict_types_csv", settings.restrict_types.join(","));
+      // }
 
       /* Linking thresholds are included to align with batch behavior. */
-      if (typeof settings.min_link_score === "number") {
-        fd.append("min_link_score", settings.min_link_score.toString());
-      }
-      if (typeof settings.max_candidates === "number") {
-        fd.append("max_candidates", settings.max_candidates.toString());
-      }
+      // if (typeof settings.min_link_score === "number") {
+      //   fd.append("min_link_score", settings.min_link_score.toString());
+      // }
+      // if (typeof settings.max_candidates === "number") {
+      //   fd.append("max_candidates", settings.max_candidates.toString());
+      // }
 
       const ack = await extractEntities(fd);
 

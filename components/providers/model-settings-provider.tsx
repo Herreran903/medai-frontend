@@ -69,7 +69,8 @@ import React, { createContext, useContext, useState } from "react";
  * These systems were selected based on clinical utility and backend normalization
  * service capabilities.
  */
-export const LOCKED_SABS = ["RXNORM", "SNOMEDCT_US", "ICD10CM"] as const;
+// Normalizacion deshabilitada temporalmente; se dejan constantes como referencia.
+// export const LOCKED_SABS = ["RXNORM", "SNOMEDCT_US", "ICD10CM"] as const;
 
 /**
  * Locked entity types eligible for normalization.
@@ -82,7 +83,7 @@ export const LOCKED_SABS = ["RXNORM", "SNOMEDCT_US", "ICD10CM"] as const;
  * Currently limited to `DX` (diagnosis) entities, as these benefit most from
  * standardized coding for interoperability and analytics purposes.
  */
-export const LOCKED_ENTITY_TYPES = ["DX"] as const;
+// export const LOCKED_ENTITY_TYPES = ["DX"] as const;
 
 /**
  * Supported extraction model families exposed in the UI.
@@ -237,54 +238,55 @@ export type ModelSettings = {
    */
   model_variant: string | null;
 
-  /**
-   * Enables UMLS-based normalization for extracted entities.
-   *
-   * When true, extracted entities are linked to standardized medical
-   * vocabulary codes (SNOMED CT, RxNorm, ICD-10). This enables
-   * interoperability with EHR systems and clinical analytics.
-   */
-  normalize: boolean;
-
-  /**
-   * Target vocabulary systems (SABs) for normalization.
-   *
-   * @remarks
-   * This field is locked to {@link LOCKED_SABS} and cannot be modified
-   * through the UI. Any values set will be overwritten by the provider.
-   */
-  systems: string[];
-
-  /**
-   * Entity types eligible for normalization.
-   *
-   * @remarks
-   * This field is locked to {@link LOCKED_ENTITY_TYPES} and cannot be
-   * modified through the UI. Only diagnosis entities are normalized.
-   */
-  restrict_types: string[];
-
-  /**
-   * Minimum similarity score required to accept a linked code.
-   *
-   * Codes with similarity scores below this threshold are filtered out
-   * from normalization results. Higher values increase precision but
-   * may reduce recall for ambiguous terms.
-   *
-   * @remarks
-   * Valid range is 0.0 to 1.0. Recommended values are 0.5-0.8 depending
-   * on the desired precision/recall tradeoff.
-   */
-  min_link_score: number;
-
-  /**
-   * Maximum candidate CUIs considered per entity during normalization.
-   *
-   * Limits the number of concept candidates evaluated for each entity,
-   * affecting both performance and result completeness. Higher values
-   * may find better matches but increase processing time.
-   */
-  max_candidates: number;
+  // Normalizacion deshabilitada temporalmente; se deja documentacion como referencia.
+  // /**
+  //  * Enables UMLS-based normalization for extracted entities.
+  //  *
+  //  * When true, extracted entities are linked to standardized medical
+  //  * vocabulary codes (SNOMED CT, RxNorm, ICD-10). This enables
+  //  * interoperability with EHR systems and clinical analytics.
+  //  */
+  // normalize: boolean;
+  //
+  // /**
+  //  * Target vocabulary systems (SABs) for normalization.
+  //  *
+  //  * @remarks
+  //  * This field is locked to {@link LOCKED_SABS} and cannot be modified
+  //  * through the UI. Any values set will be overwritten by the provider.
+  //  */
+  // systems: string[];
+  //
+  // /**
+  //  * Entity types eligible for normalization.
+  //  *
+  //  * @remarks
+  //  * This field is locked to {@link LOCKED_ENTITY_TYPES} and cannot be
+  //  * modified through the UI. Only diagnosis entities are normalized.
+  //  */
+  // restrict_types: string[];
+  //
+  // /**
+  //  * Minimum similarity score required to accept a linked code.
+  //  *
+  //  * Codes with similarity scores below this threshold are filtered out
+  //  * from normalization results. Higher values increase precision but
+  //  * may reduce recall for ambiguous terms.
+  //  *
+  //  * @remarks
+  //  * Valid range is 0.0 to 1.0. Recommended values are 0.5-0.8 depending
+  //  * on the desired precision/recall tradeoff.
+  //  */
+  // min_link_score: number;
+  //
+  // /**
+  //  * Maximum candidate CUIs considered per entity during normalization.
+  //  *
+  //  * Limits the number of concept candidates evaluated for each entity,
+  //  * affecting both performance and result completeness. Higher values
+  //  * may find better matches but increase processing time.
+  //  */
+  // max_candidates: number;
 };
 
 /**
@@ -303,12 +305,13 @@ export type ModelSettings = {
 export const DEFAULTS: ModelSettings = {
   model: "transformer",
   model_variant: defaultVariantForModel("transformer"),
-  normalize: false,
-  /* Use copies to avoid accidental external mutation. */
-  systems: [...LOCKED_SABS],
-  restrict_types: [...LOCKED_ENTITY_TYPES],
-  min_link_score: 0.6,
-  max_candidates: 25,
+  // Normalizacion deshabilitada temporalmente; se dejan defaults como referencia.
+  // normalize: false,
+  // /* Use copies to avoid accidental external mutation. */
+  // systems: [...LOCKED_SABS],
+  // restrict_types: [...LOCKED_ENTITY_TYPES],
+  // min_link_score: 0.6,
+  // max_candidates: 25,
 };
 
 /**
@@ -382,22 +385,23 @@ type ModelSettingsProviderProps = {
 export const ModelSettingsProvider: React.FC<ModelSettingsProviderProps> = ({ children }) => {
   const [settings, setState] = useState<ModelSettings>(DEFAULTS);
 
-  /**
-   * Enforces locked fields by overwriting with constant values.
-   * @internal
-   */
-  const enforceLocked = (s: ModelSettings): ModelSettings => ({
-    ...s,
-    systems: [...LOCKED_SABS],
-    restrict_types: [...LOCKED_ENTITY_TYPES],
-  });
+  // /**
+  //  * Enforces locked fields by overwriting with constant values.
+  //  * @internal
+  //  */
+  // const enforceLocked = (s: ModelSettings): ModelSettings => ({
+  //   ...s,
+  //   systems: [...LOCKED_SABS],
+  //   restrict_types: [...LOCKED_ENTITY_TYPES],
+  // });
 
   /**
    * Updates settings with enforcement of locked fields and variant coercion.
    */
   const updateSettings = (next: ModelSettings) => {
     /* Merge-on-write while enforcing locked fields. */
-    const merged = enforceLocked({ ...settings, ...next });
+    // const merged = enforceLocked({ ...settings, ...next });
+    const merged = { ...settings, ...next };
 
     /* Ensure the variant stays valid after any model change. */
     const normalizedVariant = coerceVariant(merged.model, merged.model_variant);
