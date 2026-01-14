@@ -30,19 +30,7 @@
  * @module drawer-setting
  */
 
-import {
-  Form,
-  Input,
-  InputNumber,
-  Select,
-  Button,
-  Space,
-  Typography,
-  Switch,
-  Divider,
-  Tooltip,
-} from "antd";
-import { InfoCircleOutlined } from "@ant-design/icons";
+import { Form, Input, Select, Button, Space, Typography } from "antd";
 import { useModelSettings, type ModelKind } from "../providers/model-settings-provider";
 
 /**

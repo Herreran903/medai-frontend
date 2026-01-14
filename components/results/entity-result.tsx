@@ -33,24 +33,9 @@
  * @module entity-result
  */
 
-import {
-  Card,
-  Space,
-  Tag,
-  Typography,
-  Descriptions,
-  Tabs,
-  Collapse,
-  Tooltip,
-  Table,
-  Button,
-  Badge,
-  Segmented,
-  message,
-} from "antd";
-import React, { useMemo, useState } from "react";
+import { Card, Space, Tag, Typography, Descriptions, Tabs, Collapse } from "antd";
+import React, { useMemo } from "react";
 import { getEntityColor } from "@/constants/entities";
-import { CopyOutlined, LinkOutlined } from "@ant-design/icons";
 import { Code, Entity, ExtractResponse } from "@/lib/types";
 
 /**
@@ -445,8 +430,8 @@ export default function EntityResult({ data }: EntityResultProps) {
                     buildHighlighted(data.text, (data.entities || []) as Entity[])
                   ) : (
                     <Typography.Text type="secondary">
-                      No se recibio el texto original. Asegurate de incluirlo en la respuesta
-                      (campo <code>text</code>) o de que el proveedor lo almacene.
+                      No se recibio el texto original. Asegurate de incluirlo en la respuesta (campo{" "}
+                      <code>text</code>) o de que el proveedor lo almacene.
                     </Typography.Text>
                   )}
                 </div>

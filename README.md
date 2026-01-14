@@ -7,11 +7,13 @@ and presents extraction and normalization results for clinical review.
 ## What MedAI is (and is not)
 
 MedAI Frontend:
+
 - Provides clinician-facing workflows for single and batch extraction.
 - Visualizes extracted entities, normalization codes, and backend metadata.
 - Serves as the reference implementation of the **Frontend API**.
 
 MedAI Frontend is not:
+
 - A model training environment or NLP research sandbox.
 - A backend replacement or data processing pipeline.
 - A storage system for PHI beyond what the Backend API explicitly persists.
