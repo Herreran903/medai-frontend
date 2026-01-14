@@ -160,7 +160,7 @@ export const ENTITY_INFO: Record<BaseEntity, { color: `#${string}`; description:
    */
   MODO: {
     color: "#4f46e5",
-    description: "Ventilation mode (AC/VC, VC+, PC, SIMV, PSV, CPAP, etc.).",
+    description: "Modo de ventilacion (AC/VC, VC+, PC, SIMV, PSV, CPAP, etc.).",
   },
 
   /**
@@ -169,7 +169,7 @@ export const ENTITY_INFO: Record<BaseEntity, { color: `#${string}`; description:
    */
   FIO2: {
     color: "#8b5cf6",
-    description: "Fraction of inspired oxygen (FiO₂).",
+    description: "Fraccion inspirada de oxigeno (FiO₂).",
   },
 
   /**
@@ -178,7 +178,7 @@ export const ENTITY_INFO: Record<BaseEntity, { color: `#${string}`; description:
    */
   PEEP: {
     color: "#a855f7",
-    description: "Positive End-Expiratory Pressure (cmH₂O).",
+    description: "Presion positiva al final de la espiracion (cmH₂O).",
   },
 
   /**
@@ -187,7 +187,7 @@ export const ENTITY_INFO: Record<BaseEntity, { color: `#${string}`; description:
    */
   FR: {
     color: "#f43f5e",
-    description: "Respiratory rate (may include set/actual values, e.g., 14/20).",
+    description: "Frecuencia respiratoria (puede incluir programado/real, p. ej., 14/20).",
   },
 
   /**
@@ -196,7 +196,7 @@ export const ENTITY_INFO: Record<BaseEntity, { color: `#${string}`; description:
    */
   VT: {
     color: "#d946ef",
-    description: "Tidal volume (may include set/actual values, e.g., 380/397 mL).",
+    description: "Volumen tidal (puede incluir programado/real, p. ej., 380/397 mL).",
   },
 
   /**
@@ -205,7 +205,7 @@ export const ENTITY_INFO: Record<BaseEntity, { color: `#${string}`; description:
    */
   FLUJO: {
     color: "#06b6d4",
-    description: "Inspiratory flow rate (L/min).",
+    description: "Flujo inspiratorio (L/min).",
   },
 
   /**
@@ -214,7 +214,7 @@ export const ENTITY_INFO: Record<BaseEntity, { color: `#${string}`; description:
    */
   I_E: {
     color: "#84cc16",
-    description: "Inspiration:Expiration ratio (I:E).",
+    description: "Relacion inspiracion:espiracion (I:E).",
   },
 
   /**
@@ -223,7 +223,7 @@ export const ENTITY_INFO: Record<BaseEntity, { color: `#${string}`; description:
    */
   SENS: {
     color: "#a3e635",
-    description: "Trigger sensitivity / Inspiratory trigger.",
+    description: "Sensibilidad del disparo / trigger inspiratorio.",
   },
 
   /* ─────────────────────────────────────────────────────────────────────────
@@ -237,7 +237,7 @@ export const ENTITY_INFO: Record<BaseEntity, { color: `#${string}`; description:
    */
   SAO2: {
     color: "#38bdf8",
-    description: "Oxygen saturation (SaO₂/SpO₂ %).",
+    description: "Saturacion de oxigeno (SaO₂/SpO₂ %).",
   },
 
   /**
@@ -246,7 +246,7 @@ export const ENTITY_INFO: Record<BaseEntity, { color: `#${string}`; description:
    */
   PP: {
     color: "#60a5fa",
-    description: "Peak inspiratory pressure (cmH₂O).",
+    description: "Presion inspiratoria pico (cmH₂O).",
   },
 
   /**
@@ -255,7 +255,7 @@ export const ENTITY_INFO: Record<BaseEntity, { color: `#${string}`; description:
    */
   PMES: {
     color: "#34d399",
-    description: "Plateau pressure (cmH₂O).",
+    description: "Presion de meseta (cmH₂O).",
   },
 
   /**
@@ -264,7 +264,7 @@ export const ENTITY_INFO: Record<BaseEntity, { color: `#${string}`; description:
    */
   PM: {
     color: "#10b981",
-    description: "Mechanical power (J/min).",
+    description: "Potencia mecanica (J/min).",
   },
 
   /* ─────────────────────────────────────────────────────────────────────────
@@ -278,7 +278,7 @@ export const ENTITY_INFO: Record<BaseEntity, { color: `#${string}`; description:
    */
   EDAD: {
     color: "#4f46e5",
-    description: "Patient age in years.",
+    description: "Edad del paciente (anios).",
   },
 
   /**
@@ -287,7 +287,7 @@ export const ENTITY_INFO: Record<BaseEntity, { color: `#${string}`; description:
    */
   PESO: {
     color: "#22c55e",
-    description: "Patient weight (kg).",
+    description: "Peso del paciente (kg).",
   },
 
   /**
@@ -296,7 +296,7 @@ export const ENTITY_INFO: Record<BaseEntity, { color: `#${string}`; description:
    */
   TALLA: {
     color: "#14b8a6",
-    description: "Patient height (m).",
+    description: "Talla del paciente (m).",
   },
 
   /* ─────────────────────────────────────────────────────────────────────────
@@ -310,7 +310,7 @@ export const ENTITY_INFO: Record<BaseEntity, { color: `#${string}`; description:
    */
   TEMP: {
     color: "#f59e0b",
-    description: "Body temperature (°C).",
+    description: "Temperatura corporal (°C).",
   },
 
   /**
@@ -319,7 +319,7 @@ export const ENTITY_INFO: Record<BaseEntity, { color: `#${string}`; description:
    */
   PA: {
     color: "#fb7185",
-    description: "Blood pressure, systolic/diastolic (mmHg).",
+    description: "Presion arterial, sistolica/diastolica (mmHg).",
   },
 
   /**
@@ -328,7 +328,7 @@ export const ENTITY_INFO: Record<BaseEntity, { color: `#${string}`; description:
    */
   PAS: {
     color: "#fda4af",
-    description: "Systolic blood pressure (mmHg).",
+    description: "Presion arterial sistolica (mmHg).",
   },
 
   /**
@@ -337,7 +337,7 @@ export const ENTITY_INFO: Record<BaseEntity, { color: `#${string}`; description:
    */
   PAD: {
     color: "#fca5a5",
-    description: "Diastolic blood pressure (mmHg).",
+    description: "Presion arterial diastolica (mmHg).",
   },
 
   /**
@@ -346,7 +346,7 @@ export const ENTITY_INFO: Record<BaseEntity, { color: `#${string}`; description:
    */
   PAM: {
     color: "#ef4444",
-    description: "Mean arterial pressure / MAP (mmHg).",
+    description: "Presion arterial media / PAM (mmHg).",
   },
 
   /**
@@ -355,7 +355,7 @@ export const ENTITY_INFO: Record<BaseEntity, { color: `#${string}`; description:
    */
   FC: {
     color: "#f97316",
-    description: "Heart rate (bpm).",
+    description: "Frecuencia cardiaca (bpm).",
   },
 
   /**
@@ -364,7 +364,7 @@ export const ENTITY_INFO: Record<BaseEntity, { color: `#${string}`; description:
    */
   GLICEMIA: {
     color: "#0ea5e9",
-    description: "Blood glucose / Glucometry (mg/dL).",
+    description: "Glucemia / glucometria (mg/dL).",
   },
 
   /**
@@ -373,7 +373,7 @@ export const ENTITY_INFO: Record<BaseEntity, { color: `#${string}`; description:
    */
   POSTURA: {
     color: "#64748b",
-    description: "Patient positioning / Body posture.",
+    description: "Posicion del paciente / postura corporal.",
   },
 
   /* ─────────────────────────────────────────────────────────────────────────
@@ -387,7 +387,7 @@ export const ENTITY_INFO: Record<BaseEntity, { color: `#${string}`; description:
    */
   DX: {
     color: "#16a34a",
-    description: "Diagnosis / Diagnostic impression.",
+    description: "Diagnostico / impresion diagnostica.",
   },
 
   /* ─────────────────────────────────────────────────────────────────────────
@@ -401,7 +401,7 @@ export const ENTITY_INFO: Record<BaseEntity, { color: `#${string}`; description:
    */
   PH: {
     color: "#14b8a6",
-    description: "Arterial pH.",
+    description: "pH arterial.",
   },
 
   /**
@@ -410,7 +410,7 @@ export const ENTITY_INFO: Record<BaseEntity, { color: `#${string}`; description:
    */
   PACO2: {
     color: "#0ea5e9",
-    description: "Partial pressure of CO₂ (PaCO₂, mmHg).",
+    description: "Presion parcial de CO₂ (PaCO₂, mmHg).",
   },
 
   /**
@@ -419,7 +419,7 @@ export const ENTITY_INFO: Record<BaseEntity, { color: `#${string}`; description:
    */
   HCO3: {
     color: "#22d3ee",
-    description: "Bicarbonate (HCO₃⁻, mEq/L).",
+    description: "Bicarbonato (HCO₃⁻, mEq/L).",
   },
 
   /**
@@ -428,7 +428,7 @@ export const ENTITY_INFO: Record<BaseEntity, { color: `#${string}`; description:
    */
   BE: {
     color: "#34d399",
-    description: "Base excess (BE, mEq/L).",
+    description: "Exceso de base (BE, mEq/L).",
   },
 
   /**
@@ -437,7 +437,7 @@ export const ENTITY_INFO: Record<BaseEntity, { color: `#${string}`; description:
    */
   PAO2: {
     color: "#06b6d4",
-    description: "Partial pressure of O₂ (PaO₂, mmHg).",
+    description: "Presion parcial de O₂ (PaO₂, mmHg).",
   },
 
   /**
@@ -446,7 +446,7 @@ export const ENTITY_INFO: Record<BaseEntity, { color: `#${string}`; description:
    */
   PAFI: {
     color: "#8b5cf6",
-    description: "PaO₂/FiO₂ ratio (P/F ratio).",
+    description: "Relacion PaO₂/FiO₂ (relacion P/F).",
   },
 };
 

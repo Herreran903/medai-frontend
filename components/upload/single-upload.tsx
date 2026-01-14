@@ -272,7 +272,7 @@ export default function SingleUpload() {
       (values.file?.length === 1 && !(values.texto && values.texto.trim().length > 0));
 
     if (!canSubmitNow) {
-      notify.info("Provide either text or a valid file (only one).");
+      notify.info("Proporciona texto o un archivo valido (solo uno).");
       return;
     }
 
@@ -319,11 +319,11 @@ export default function SingleUpload() {
       const ack = await extractEntities(fd);
 
       if (!ack?.id) {
-        notify.info("Extraction did not return an ID.");
+        notify.info("La extraccion no devolvio un ID.");
         return;
       }
       if (!ack.stored) {
-        notify.info("Note was not stored (save=false or storage policy).");
+        notify.info("La nota no se guardo (save=false o politica de almacenamiento).");
       }
 
       const url = `/results/${ack.id}`;
@@ -332,7 +332,7 @@ export default function SingleUpload() {
       const isFieldsError =
         typeof e === "object" && e !== null && "errorFields" in e && Array.isArray(e.errorFields);
       if (isFieldsError) {
-        notify.error("Please complete the episode number and date fields.");
+        notify.error("Completa el numero de episodio y la fecha.");
       } else {
         notify.error(getErrorMessage(e));
       }
@@ -380,7 +380,7 @@ export default function SingleUpload() {
             placeholder={
               textDisabled
                 ? "Deshabilitado porque se subio un archivo"
-                : "Paste the clinical note here…"
+                : "Pega la nota clinica aqui…"
             }
             disabled={textDisabled}
             onChange={onTextChange}
@@ -392,7 +392,7 @@ export default function SingleUpload() {
           name="file"
           valuePropName="fileList"
           getValueFromEvent={normFile}
-          extra="Only TXT, PDF, or DOC/DOCX files are allowed. Maximum 1 file."
+          extra="Solo se permiten archivos TXT, PDF o DOC/DOCX. Maximo 1 archivo."
         >
           <Dragger
             multiple={false}

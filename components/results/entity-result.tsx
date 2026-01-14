@@ -145,7 +145,7 @@ function CodesList({ codes }: CodesListProps) {
               icon={<CopyOutlined />}
               onClick={() => {
                 navigator.clipboard.writeText(`${c.system}:${c.code}`);
-                message.success("Copied");
+                message.success("Copiado");
               }}
             />
             {url && (
@@ -202,7 +202,7 @@ function getMaxNormalizatedCode(e: Entity): Code | null {
  */
 function CodeTooltip({ e }: CodeTooltipProps) {
   const top = getMaxNormalizatedCode(e);
-  const code = top?.display || top?.code || "No normalization";
+  const code = top?.display || top?.code || "Sin normalizacion";
   return <span className="capitalize">{code}</span>;
 }
 
@@ -416,7 +416,7 @@ export default function EntityResult({ data }: EntityResultProps) {
         value={systemFilter}
         onChange={(val) => setSystemFilter(val)}
         options={[
-          { label: "All", value: "ALL" },
+          { label: "Todos", value: "ALL" },
           { label: "RxNorm", value: "RXNORM" },
           { label: "SNOMED", value: "SNOMEDCT_US" },
           { label: "ICD-10-CM", value: "ICD10CM" },
@@ -442,8 +442,8 @@ export default function EntityResult({ data }: EntityResultProps) {
                     buildHighlighted(data.text, (data.entities || []) as Entity[])
                   ) : (
                     <Typography.Text type="secondary">
-                      Original text not received. Ensure it is included in the response (
-                      <code>text</code> field) or stored by the provider.
+                      No se recibio el texto original. Asegurate de incluirlo en la respuesta
+                      (campo <code>text</code>) o de que el proveedor lo almacene.
                     </Typography.Text>
                   )}
                 </div>
@@ -530,7 +530,7 @@ export default function EntityResult({ data }: EntityResultProps) {
           items={[
             {
               key: "meta",
-              label: "Extraction Metadata",
+              label: "Metadatos de extraccion",
               children: (
                 <Descriptions bordered size="small" column={1}>
                   {metaEntries.map(([k, v]) => (

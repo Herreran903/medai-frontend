@@ -25,5 +25,5 @@ import LoadingOverlay from "@/components/ui/LoadingOverlay";
  * @returns A full-screen loading overlay with extraction status message.
  */
 export default function Loading() {
-  return <LoadingOverlay show text="Loading extraction results…" />;
+  return <LoadingOverlay show text="Cargando resultados de extraccion…" />;
 }
