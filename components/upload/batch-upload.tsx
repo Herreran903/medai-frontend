@@ -102,6 +102,8 @@ export default function BatchUpload() {
   const [loading, setLoading] = useState(false);
   const [form] = Form.useForm();
   const [showResultsOnly, setShowResultsOnly] = useState(false);
+  const modelLabel =
+    settings.model === "lstm" ? "BiLSTM-CRF" : settings.model === "llm" ? "LLM" : "Transformer";
 
   /**
    * Transforms uploaded files into table data source format.
@@ -343,13 +345,12 @@ export default function BatchUpload() {
                 Iniciar extraccion
               </Button>
               <Typography.Text type="secondary" className="capitalize">
-                Modelo actual: <b>{settings.model}</b>
-                {typeof settings.model_variant === "string" && settings.model_variant ? (
-                  <>
-                    {" "}
-                    (<b>{settings.model_variant}</b>)
-                  </>
-                ) : null}
+                Modelo actual: <b>{modelLabel}</b>
+                {/*
+                  Variante oculta en UI (se fuerza en el provider):
+                  - transformer -> roberta
+                  - llm -> gpt
+                */}
               </Typography.Text>
             </Space>
           </>

@@ -139,9 +139,8 @@ export type TransformerVariant = (typeof TRANSFORMER_VARIANTS)[number];
 /**
  * Resolves the default variant for a given model family.
  *
- * This function provides sensible defaults when a user switches model families
- * or when no variant has been explicitly selected. The defaults are chosen
- * based on availability and general performance characteristics.
+ * This function provides the enforced default variant for each model family.
+ * Variants are currently not user-configurable in the UI.
  *
  * @param model - The model family to get the default variant for.
  * @returns The default variant string, or null for models without variants.
@@ -151,9 +150,9 @@ export type TransformerVariant = (typeof TRANSFORMER_VARIANTS)[number];
 function defaultVariantForModel(model: ModelKind): string | null {
   switch (model) {
     case "llm":
-      return "claude";
+      return "gpt";
     case "transformer":
-      return "beto";
+      return "roberta";
     case "lstm":
     default:
       /* LSTM models do not expose configurable variants. */
@@ -164,10 +163,8 @@ function defaultVariantForModel(model: ModelKind): string | null {
 /**
  * Coerces a variant value to be valid for the specified model family.
  *
- * This function prevents invalid variant selections that could occur when
- * a user switches between model families. For example, if a user selects
- * "beto" (transformer variant) and then switches to LLM, this function
- * will reset the variant to "claude" (LLM default).
+ * Variants are currently fixed per family, so this function ignores the input
+ * variant and returns the enforced default for the selected model family.
  *
  * @param model - The target model family.
  * @param variant - The current variant value to coerce.
@@ -175,24 +172,17 @@ function defaultVariantForModel(model: ModelKind): string | null {
  *
  * @internal
  */
-function coerceVariant(model: ModelKind, variant: string | null | undefined): string | null {
+function coerceVariant(model: ModelKind, _variant: string | null | undefined): string | null {
+  /*
+   * Variants are currently not user-configurable in the UI.
+   * We enforce a single backend variant per model family:
+   * - transformer -> roberta
+   * - llm -> gpt
+   * - lstm -> null
+   */
+  void _variant;
   if (model === "lstm") return null;
-  if (!variant || variant.trim() === "") return defaultVariantForModel(model);
-
-  /* Backend validation is authoritative; the UI only prevents mismatched families. */
-  if (model === "llm") {
-    /* Reset transformer defaults when the user switches back to LLM. */
-    if ((TRANSFORMER_VARIANTS as readonly string[]).includes(variant)) return "claude";
-    return variant;
-  }
-  if (model === "transformer") {
-    /* Reset LLM defaults when the user switches to transformer. */
-    if ((LLM_VARIANTS as readonly string[]).includes(variant)) return "beto";
-    /* Enforce known transformer variants to reduce invalid submissions. */
-    if (!(TRANSFORMER_VARIANTS as readonly string[]).includes(variant)) return "beto";
-    return variant;
-  }
-  return null;
+  return defaultVariantForModel(model);
 }
 
 /**
@@ -211,7 +201,7 @@ function coerceVariant(model: ModelKind, variant: string | null | undefined): st
  * ```typescript
  * const settings: ModelSettings = {
  *   model: "transformer",
- *   model_variant: "beto",
+ *   model_variant: "roberta",
  *   normalize: true,
  *   systems: ["RXNORM", "SNOMEDCT_US", "ICD10CM"],
  *   restrict_types: ["DX"],
@@ -298,7 +288,7 @@ export type ModelSettings = {
  * @remarks
  * The defaults prioritize:
  * - Transformer models for accuracy
- * - BETO variant for Spanish clinical text
+ * - RoBERTa variant for transformer
  * - Normalization disabled by default (opt-in)
  * - Conservative linking thresholds for precision
  */

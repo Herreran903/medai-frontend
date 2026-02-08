@@ -195,6 +195,8 @@ export default function SingleUpload() {
   const texto = Form.useWatch<string>("texto", form);
   const watchedFiles = Form.useWatch<UploadFile[]>("file", form);
   const fileList = useMemo<UploadFile[]>(() => watchedFiles ?? [], [watchedFiles]);
+  const modelLabel =
+    settings.model === "lstm" ? "BiLSTM-CRF" : settings.model === "llm" ? "LLM" : "Transformer";
 
   /**
    * Normalizes the file list from upload events.
@@ -420,13 +422,12 @@ export default function SingleUpload() {
             Iniciar extracción
           </Button>
           <Typography.Text type="secondary" className="capitalize">
-            Modelo actual: <b>{settings.model}</b>
-            {typeof settings.model_variant === "string" && settings.model_variant ? (
-              <>
-                {" "}
-                (<b>{settings.model_variant}</b>)
-              </>
-            ) : null}
+            Modelo actual: <b>{modelLabel}</b>
+            {/*
+              Variante oculta en UI (se fuerza en el provider):
+              - transformer -> roberta
+              - llm -> gpt
+            */}
           </Typography.Text>
         </Space>
       </Form>

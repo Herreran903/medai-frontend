@@ -30,7 +30,7 @@
  * @module drawer-setting
  */
 
-import { Form, Input, Select, Button, Space, Typography } from "antd";
+import { Form, Select, Button, Space, Typography } from "antd";
 import { useModelSettings, type ModelKind } from "../providers/model-settings-provider";
 
 /**
@@ -60,8 +60,8 @@ type DrawerSettingProps = {
  * @internal
  */
 function defaultVariantForModel(model: ModelKind): string | null {
-  if (model === "llm") return "claude";
-  if (model === "transformer") return "beto";
+  if (model === "llm") return "gpt";
+  if (model === "transformer") return "roberta";
   /* LSTM models do not expose configurable variants. */
   return null;
 }
@@ -131,14 +131,12 @@ const MODEL_OPTIONS: { label: string; value: ModelKind }[] = [
 export default function DrawerSetting({ onClose }: DrawerSettingProps) {
   const { settings, setSettings } = useModelSettings();
   const [form] = Form.useForm();
-  const watchModel = Form.useWatch<ModelKind>("model", form);
 
   /**
    * Initial form values derived from current context settings.
    */
   const initialValues = {
     model: settings?.model ?? "transformer",
-    model_variant: settings?.model_variant ?? undefined,
     // Normalizacion deshabilitada temporalmente; se dejan valores como referencia.
     // normalize: settings?.normalize ?? false,
     // min_link_score: settings?.min_link_score ?? 0.6,
@@ -150,30 +148,9 @@ export default function DrawerSetting({ onClose }: DrawerSettingProps) {
       layout="vertical"
       form={form}
       initialValues={initialValues}
-      onValuesChange={(changed) => {
-        /* Auto-update variant when model family changes */
-        if (Object.prototype.hasOwnProperty.call(changed, "model")) {
-          const m = changed.model as ModelKind;
-          form.setFieldsValue({ model_variant: defaultVariantForModel(m) });
-        }
-      }}
       onFinish={(vals) => {
-        const variant =
-          vals.model === "lstm"
-            ? null
-            : typeof vals.model_variant === "string" && vals.model_variant.trim().length > 0
-              ? vals.model_variant.trim()
-              : defaultVariantForModel(vals.model as ModelKind);
-
-        /* Normalize numeric inputs and delegate locked fields to the provider. */
-        const payload = {
-          ...vals,
-          model_variant: variant,
-          // Normalizacion deshabilitada temporalmente; se dejan campos como referencia.
-          // min_link_score: Number(vals.min_link_score),
-          // max_candidates: Number(vals.max_candidates),
-        };
-        setSettings(payload);
+        const model = (vals.model ?? "transformer") as ModelKind;
+        setSettings({ model, model_variant: defaultVariantForModel(model) });
         onClose?.();
       }}
     >
@@ -185,16 +162,23 @@ export default function DrawerSetting({ onClose }: DrawerSettingProps) {
         <Select options={MODEL_OPTIONS} />
       </Form.Item>
 
-      {watchModel === "llm" && (
+      {/*
+        Variantes ocultas: por ahora solo se elige el tipo de modelo.
+        La variante se fuerza automaticamente:
+        - transformer -> roberta
+        - llm -> gpt
+        - lstm -> null
+      */}
+      {/* {watchModel === "llm" && (
         <Form.Item
           label="Variante LLM"
           name="model_variant"
-          extra="Por defecto: Claude. Tambien disponibles: GPT, Local (Ollama)."
+          extra="Por defecto: GPT."
         >
           <Select
             options={[
-              { label: "Claude (por defecto)", value: "claude" },
-              { label: "GPT", value: "gpt" },
+              { label: "GPT (por defecto)", value: "gpt" },
+              { label: "Claude", value: "claude" },
               { label: "Local (Ollama)", value: "local" },
             ]}
           />
@@ -205,12 +189,12 @@ export default function DrawerSetting({ onClose }: DrawerSettingProps) {
         <Form.Item
           label="Variante Transformer"
           name="model_variant"
-          extra="Selecciona la variante del modelo (por defecto: BETO)."
+          extra="Selecciona la variante del modelo (por defecto: RoBERTa)."
         >
           <Select
             options={[
+              { label: "RoBERTa (por defecto)", value: "roberta" },
               { label: "BETO", value: "beto" },
-              { label: "RoBERTa", value: "roberta" },
             ]}
           />
         </Form.Item>
@@ -220,7 +204,7 @@ export default function DrawerSetting({ onClose }: DrawerSettingProps) {
         <Form.Item label="Variante" extra="Los modelos LSTM no tienen variantes configurables.">
           <Input value="N/D" disabled />
         </Form.Item>
-      )}
+      )} */}
 
       {/* Normalizacion deshabilitada temporalmente; se deja el bloque como referencia.
       <Divider />
