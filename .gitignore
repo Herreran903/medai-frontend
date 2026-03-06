@@ -65,3 +65,6 @@ storybook-static/
 # Markdown docs (keep only main README tracked)
 *.md
 !README.md
+
+# Local thesis notes
+TESIS_GUIA_FRONTEND.txt
