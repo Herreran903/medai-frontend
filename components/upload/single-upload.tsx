@@ -200,15 +200,15 @@ export default function SingleUpload() {
   const modelLabel = (() => {
     switch (settings.model) {
       case "transformer":
-        return "Transformer (RoBERTa con stride)";
+        return "Transformer";
       case "crf":
-        return "CRF (sklearn-crfsuite)";
+        return "CRF";
       case "lstm":
-        return "BiLSTM (solo)";
+        return "BiLSTM";
       case "lstm_crf":
         return "BiLSTM-CRF";
       case "llm":
-        return "LLM (GPT)";
+        return "LLM";
     }
   })();
 

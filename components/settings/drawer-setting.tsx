@@ -75,11 +75,11 @@ function defaultVariantForModel(model: ModelKind): string | null {
  * @internal
  */
 const MODEL_OPTIONS: { label: string; value: ModelKind }[] = [
-  { label: "Transformer (RoBERTa con stride)", value: "transformer" },
-  { label: "CRF (sklearn-crfsuite)", value: "crf" },
-  { label: "BiLSTM (solo)", value: "lstm" },
+  { label: "Transformer", value: "transformer" },
+  { label: "CRF", value: "crf" },
+  { label: "BiLSTM", value: "lstm" },
   { label: "BiLSTM-CRF", value: "lstm_crf" },
-  { label: "LLM (GPT)", value: "llm" },
+  { label: "LLM", value: "llm" },
 ];
 
 /**
