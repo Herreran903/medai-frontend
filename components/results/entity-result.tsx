@@ -5,15 +5,12 @@
  *
  * This module provides the primary interface for reviewing clinical entity
  * extraction results. It displays highlighted text with inline entity markers,
- * grouped entity lists, and normalized code mappings with external reference links.
+ * grouped entity lists, and backend metadata for audit-oriented review.
  *
  * @remarks
  * **Key Features:**
  * - Highlighted text view with color-coded entity markers
  * - Grouped entity list organized by entity type
- * - Normalization table with vocabulary system filtering
- * - External links to RxNorm, SNOMED CT, and ICD-10 browsers
- * - Copy-to-clipboard functionality for normalized codes
  * - Collapsible metadata panel for backend audit information
  *
  * @example
@@ -36,33 +33,7 @@
 import { Card, Space, Tag, Typography, Descriptions, Tabs, Collapse } from "antd";
 import React, { useMemo } from "react";
 import { getEntityColor } from "@/constants/entities";
-import { Code, Entity, ExtractResponse } from "@/lib/types";
-
-/**
- * Props for the {@link CodesList} component.
- */
-type CodesListProps = {
-  /**
-   * Normalized codes attached to the entity.
-   *
-   * An array of {@link Code} objects representing vocabulary mappings
-   * for the entity. May be empty or undefined if normalization was
-   * not performed or no matches were found.
-   */
-  codes?: Code[];
-};
-
-/**
- * Props for the {@link CodeTooltip} component.
- */
-type CodeTooltipProps = {
-  /**
-   * Entity providing normalization metadata.
-   *
-   * The entity whose best normalized code will be displayed in the tooltip.
-   */
-  e: Entity;
-};
+import { Entity, ExtractResponse } from "@/lib/types";
 
 /**
  * Props for the {@link EntityResult} component.
@@ -73,124 +44,10 @@ type EntityResultProps = {
    *
    * The complete response from the Backend API extraction endpoint,
    * including the original clinical text, extracted entities with
-   * offsets and normalizations, and backend metadata.
+   * offsets and optional code mappings, and backend metadata.
    */
   data: ExtractResponse;
 };
-
-/**
- * Builds external reference links for known clinical vocabularies.
- *
- * Generates URLs to authoritative vocabulary browsers where clinicians
- * can validate normalization results and access additional concept details.
- *
- * @param system - The vocabulary system identifier (e.g., "RXNORM", "SNOMEDCT_US").
- * @param code - The code value within the vocabulary system.
- * @returns A URL string for the external browser, or null for unknown systems.
- *
- * @internal
- */
-// Normalizacion deshabilitada temporalmente; se deja la funcion como referencia.
-// function systemLink(system: string, code: string): string | null {
-//   const s = (system || "").toUpperCase();
-//   if (s === "RXNORM") return `https://rxnav.nlm.nih.gov/REST/rxcui/${encodeURIComponent(code)}`;
-//   if (s.startsWith("SNOMED"))
-//     return `https://browser.ihtsdotools.org/?perspective=full&conceptId=${encodeURIComponent(code)}`;
-//   if (s === "ICD10CM") return `https://icd.codes/icd10cm/${encodeURIComponent(code)}`;
-//   return null;
-// }
-
-/**
- * Renders a list of normalized codes for a single entity.
- *
- * Displays each code with its vocabulary system, display label, confidence
- * score, and action buttons for copying and opening external references.
- * Supports clinical review and copy-paste workflows.
- *
- * @param props - Component props containing the codes array.
- * @returns A React element displaying the codes list.
- *
- * @internal
- */
-// function CodesList({ codes }: CodesListProps) {
-//   if (!codes?.length) return <Typography.Text type="secondary">Sin codigos</Typography.Text>;
-//   return (
-//     <Space direction="vertical" size={4}>
-//       {codes.map((c, idx) => {
-//         const url = systemLink(c.system, c.code);
-//         return (
-//           <Space key={`${c.system}-${c.code}-${idx}`} size={6} wrap>
-//             <Badge color="blue" text={<strong>{c.system}</strong>} />
-//             {c.display && <Typography.Text>{c.display}</Typography.Text>}
-//             {typeof c.score === "number" && (
-//               <Typography.Text type="secondary">· puntaje {c.score.toFixed(2)}</Typography.Text>
-//             )}
-//             <Button
-//               size="small"
-//               type="text"
-//               icon={<CopyOutlined />}
-//               onClick={() => {
-//                 navigator.clipboard.writeText(`${c.system}:${c.code}`);
-//                 message.success("Copiado");
-//               }}
-//             />
-//             {url && (
-//               <Button
-//                 size="small"
-//                 type="link"
-//                 icon={<LinkOutlined />}
-//                 href={url}
-//                 target="_blank"
-//                 rel="noreferrer"
-//               >
-//                 Abrir
-//               </Button>
-//             )}
-//           </Space>
-//         );
-//       })}
-//     </Space>
-//   );
-// }
-
-/**
- * Selects the highest-confidence normalized code from an entity.
- *
- * When an entity has multiple normalized codes, this function returns
- * the one with the highest confidence score for display in compact
- * tooltips and summaries.
- *
- * @param e - The entity to extract the best code from.
- * @returns The highest-scoring Code object, or null if no codes exist.
- *
- * @internal
- */
-// function getMaxNormalizatedCode(e: Entity): Code | null {
-//   if (!e?.codes?.length && !e?.code) return null;
-//   const list = e.codes?.length ? e.codes : [{ system: "—", code: e.code || "" }];
-//   return list.reduce(
-//     (max, c) => (c.score && (!max.score || c.score > max.score) ? c : max),
-//     list[0]
-//   );
-// }
-
-/**
- * Tooltip content showing the best normalized code for an entity.
- *
- * Displays a compact representation of the entity's normalization,
- * reducing visual noise while still exposing normalization context
- * on hover.
- *
- * @param props - Component props containing the entity.
- * @returns A React element with the tooltip content.
- *
- * @internal
- */
-// function CodeTooltip({ e }: CodeTooltipProps) {
-//   const top = getMaxNormalizatedCode(e);
-//   const code = top?.display || top?.code || "Sin normalizacion";
-//   return <span className="capitalize">{code}</span>;
-// }
 
 /**
  * Builds a highlighted clinical note with inline entity markers.
@@ -241,25 +98,6 @@ function buildHighlighted(text: string, entities: Entity[]) {
       </mark>
     );
 
-    // Normalizacion deshabilitada temporalmente; se deja la logica como referencia.
-    // const isNormalized = Boolean(ent.code || (ent.codes && ent.codes.length));
-    //
-    // if (isNormalized) {
-    //   chunks.push(
-    //     <Tooltip
-    //       className="max-w-lg"
-    //       key={`tt-${start}-${end}`}
-    //       placement="top"
-    //       title={<CodeTooltip e={ent} />}
-    //       color={getEntityColor(type)}
-    //     >
-    //       {mark}
-    //     </Tooltip>
-    //   );
-    //   cursor = end;
-    //   continue;
-    // }
-
     chunks.push(mark);
 
     cursor = end;
@@ -277,21 +115,16 @@ function buildHighlighted(text: string, entities: Entity[]) {
 }
 
 /**
- * Primary results view for extracted entities and normalization.
+ * Primary results view for extracted entities.
  *
  * This component consolidates text highlights, entity lists, and metadata
- * into a single clinical review surface. It provides three viewing modes:
- * highlighted text, grouped entity list, and normalization table.
+ * into a single clinical review surface. It currently provides two viewing
+ * modes: highlighted text and grouped entity list.
  *
  * @remarks
  * **Tab Views:**
  * 1. **Highlighted Text** — Original note with color-coded entity markers
  * 2. **Entity List** — Entities grouped by type in expandable cards
- * 3. **Normalization** — Table of normalized entities with vocabulary codes
- *
- * **Filtering:**
- * The normalization tab includes a vocabulary system filter allowing users
- * to focus on specific code systems (RxNorm, SNOMED CT, ICD-10-CM).
  *
  * **Metadata:**
  * Backend metadata is displayed in a collapsible panel for debugging and
@@ -326,12 +159,6 @@ export default function EntityResult({ data }: EntityResultProps) {
    */
   const types = useMemo(() => Object.keys(entitiesByType).sort(), [entitiesByType]);
 
-  // Normalizacion deshabilitada temporalmente; se deja la logica como referencia.
-  // /**
-  //  * Current vocabulary system filter for the normalization table.
-  //  */
-  // const [systemFilter, setSystemFilter] = useState<string | "ALL">("ALL");
-
   /**
    * Legend showing all entity types with their colors.
    */
@@ -350,68 +177,6 @@ export default function EntityResult({ data }: EntityResultProps) {
 
   const metaEntries = Object.entries(data.meta ?? {});
   const hasMeta = metaEntries.length > 0;
-
-  // /**
-  //  * Entities filtered by the selected vocabulary system.
-  //  */
-  // const normalizedEntities = useMemo(() => {
-  //   const all = (data.entities || []).filter((e) => (e.codes && e.codes.length) || e.code);
-  //   if (systemFilter === "ALL") return all;
-  //   return all
-  //     .map((e) => ({
-  //       ...e,
-  //       codes: (e.codes || []).filter((c) => c.system?.toUpperCase() === systemFilter),
-  //     }))
-  //     .filter((e) => (e.codes && e.codes.length) || e.code);
-  // }, [data.entities, systemFilter]);
-
-  // /**
-  //  * Column definitions for the normalization table.
-  //  */
-  // const columns = [
-  //   {
-  //     title: "Entidad",
-  //     dataIndex: "text",
-  //     key: "text",
-  //     render: (text: string, e: Entity) => (
-  //       <Space direction="vertical" size={0}>
-  //         <Typography.Text strong className="capitalize">
-  //           {text}
-  //         </Typography.Text>
-  //         <Tag
-  //           color={getEntityColor(e.type) + "33"}
-  //           style={{ color: "#111827", borderColor: getEntityColor(e.type) }}
-  //         >
-  //           {e.type}
-  //         </Tag>
-  //       </Space>
-  //     ),
-  //   },
-  //   {
-  //     title: "Normalizacion",
-  //     key: "codes",
-  //     render: (e: Entity) => <CodesList codes={e.codes} />,
-  //   },
-  // ];
-
-  // /**
-  //  * Header with vocabulary system filter controls.
-  //  */
-  // const normHeader = (
-  //   <Space style={{ width: "100%", justifyContent: "space-between" }}>
-  //     <Typography.Text>Filtrar por sistema</Typography.Text>
-  //     <Segmented
-  //       value={systemFilter}
-  //       onChange={(val) => setSystemFilter(val)}
-  //       options={[
-  //         { label: "Todos", value: "ALL" },
-  //         { label: "RxNorm", value: "RXNORM" },
-  //         { label: "SNOMED", value: "SNOMEDCT_US" },
-  //         { label: "ICD-10-CM", value: "ICD10CM" },
-  //       ]}
-  //     />
-  //   </Space>
-  // );
 
   return (
     <Space direction="vertical" className="w-full">
@@ -487,28 +252,6 @@ export default function EntityResult({ data }: EntityResultProps) {
                 </div>
               ),
             },
-            // Normalizacion deshabilitada temporalmente; se deja la vista como referencia.
-            // {
-            //   key: "norm",
-            //   label: "Normalizacion",
-            //   children: (
-            //     <div style={{ maxHeight: 420, overflow: "auto" }}>
-            //       <div style={{ marginBottom: 8 }}>{normHeader}</div>
-            //       <Table
-            //         size="small"
-            //         rowKey={(e) => `${e.type}-${e.start}-${e.end}-${e.text}`}
-            //         dataSource={normalizedEntities}
-            //         columns={columns}
-            //         pagination={{ pageSize: 6, size: "small", hideOnSinglePage: true }}
-            //       />
-            //       {normalizedEntities.length === 0 && (
-            //         <Typography.Text type="secondary">
-            //           No hay entidades con codigos normalizados.
-            //         </Typography.Text>
-            //       )}
-            //     </div>
-            //   ),
-            // },
           ]}
         />
       </Card>

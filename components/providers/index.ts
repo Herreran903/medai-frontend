@@ -10,8 +10,7 @@
  * import {
  *   ModelSettingsProvider,
  *   useModelSettings,
- *   DEFAULTS,
- *   LOCKED_SABS
+ *   DEFAULTS
  * } from "@/components/providers";
  * ```
  *

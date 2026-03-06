@@ -4,14 +4,13 @@
  * Model settings drawer component for the MedAI frontend.
  *
  * This module provides a form-based configuration panel for extraction model
- * settings. It allows users to select the NER model family, configure model
- * variants, and adjust normalization parameters before processing clinical text.
+ * settings. In the current UI, users can select the NER model family only.
+ * Model variant values are derived automatically from the selected family.
  *
  * @remarks
  * The component integrates with the {@link ModelSettingsProvider} context to
- * persist settings across the application. Locked fields (vocabulary systems
- * and entity types for normalization) are intentionally hidden from the UI
- * as they are enforced by the provider.
+ * persist settings across the application and keep variant values aligned with
+ * backend expectations.
  *
  * @example
  * ```tsx
@@ -31,6 +30,7 @@
  */
 
 import { Form, Select, Button, Space, Typography } from "antd";
+import LlmPrivacyAlert from "@/components/ui/llm-privacy-alert";
 import { useModelSettings, type ModelKind } from "../providers/model-settings-provider";
 
 /**
@@ -62,7 +62,7 @@ type DrawerSettingProps = {
 function defaultVariantForModel(model: ModelKind): string | null {
   if (model === "llm") return "gpt";
   if (model === "transformer") return "roberta";
-  /* LSTM models do not expose configurable variants. */
+  /* These models do not expose configurable variants. */
   return null;
 }
 
@@ -75,33 +75,29 @@ function defaultVariantForModel(model: ModelKind): string | null {
  * @internal
  */
 const MODEL_OPTIONS: { label: string; value: ModelKind }[] = [
-  { label: "Transformer", value: "transformer" },
-  { label: "BiLSTM-CRF", value: "lstm" },
-  { label: "LLM", value: "llm" },
+  { label: "Transformer (RoBERTa con stride)", value: "transformer" },
+  { label: "CRF (sklearn-crfsuite)", value: "crf" },
+  { label: "BiLSTM (solo)", value: "lstm" },
+  { label: "BiLSTM-CRF", value: "lstm_crf" },
+  { label: "LLM (GPT)", value: "llm" },
 ];
 
 /**
- * Configuration form for extraction model and normalization settings.
+ * Configuration form for extraction model settings.
  *
- * This component provides a comprehensive settings interface that allows users
- * to configure the NER extraction pipeline before processing clinical text.
+ * This component provides a compact settings interface that allows users
+ * to configure the model family used for NER extraction before processing
+ * clinical text.
  * Settings are persisted to the {@link ModelSettingsProvider} context and
  * applied to all subsequent extraction requests.
  *
  * @remarks
  * **Form Sections:**
- * 1. **Model Selection** — Choose the NER model family (Transformer, LSTM, LLM)
- * 2. **Model Variant** — Select specific model implementation (varies by family)
- * 3. **Normalization** — Configure UMLS-based entity linking parameters
- *
- * **Locked Fields:**
- * The vocabulary systems (`systems`) and entity types (`restrict_types`) are
- * intentionally hidden from this form. These fields are locked to specific
- * values by the provider to ensure consistency with backend expectations.
+ * 1. **Model Selection** — Choose the NER model family (Transformer, CRF, BiLSTM, BiLSTM-CRF, LLM)
+ * 2. **Model Variant (implicit)** — Derived automatically from the selected family
  *
  * **Form Behavior:**
  * - Changing the model family automatically updates the variant to a valid default
- * - Numeric inputs are normalized before being saved to the context
  * - The Reset button restores form fields to their initial values (not defaults)
  *
  * **Client-Only Behavior:**
@@ -131,16 +127,14 @@ const MODEL_OPTIONS: { label: string; value: ModelKind }[] = [
 export default function DrawerSetting({ onClose }: DrawerSettingProps) {
   const { settings, setSettings } = useModelSettings();
   const [form] = Form.useForm();
+  const initialModel = settings?.model ?? "transformer";
+  const watchedModel = Form.useWatch<ModelKind>("model", form) ?? initialModel;
 
   /**
    * Initial form values derived from current context settings.
    */
   const initialValues = {
-    model: settings?.model ?? "transformer",
-    // Normalizacion deshabilitada temporalmente; se dejan valores como referencia.
-    // normalize: settings?.normalize ?? false,
-    // min_link_score: settings?.min_link_score ?? 0.6,
-    // max_candidates: settings?.max_candidates ?? 25,
+    model: initialModel,
   };
 
   return (
@@ -162,93 +156,7 @@ export default function DrawerSetting({ onClose }: DrawerSettingProps) {
         <Select options={MODEL_OPTIONS} />
       </Form.Item>
 
-      {/*
-        Variantes ocultas: por ahora solo se elige el tipo de modelo.
-        La variante se fuerza automaticamente:
-        - transformer -> roberta
-        - llm -> gpt
-        - lstm -> null
-      */}
-      {/* {watchModel === "llm" && (
-        <Form.Item
-          label="Variante LLM"
-          name="model_variant"
-          extra="Por defecto: GPT."
-        >
-          <Select
-            options={[
-              { label: "GPT (por defecto)", value: "gpt" },
-              { label: "Claude", value: "claude" },
-              { label: "Local (Ollama)", value: "local" },
-            ]}
-          />
-        </Form.Item>
-      )}
-
-      {watchModel === "transformer" && (
-        <Form.Item
-          label="Variante Transformer"
-          name="model_variant"
-          extra="Selecciona la variante del modelo (por defecto: RoBERTa)."
-        >
-          <Select
-            options={[
-              { label: "RoBERTa (por defecto)", value: "roberta" },
-              { label: "BETO", value: "beto" },
-            ]}
-          />
-        </Form.Item>
-      )}
-
-      {watchModel === "lstm" && (
-        <Form.Item label="Variante" extra="Los modelos LSTM no tienen variantes configurables.">
-          <Input value="N/D" disabled />
-        </Form.Item>
-      )} */}
-
-      {/* Normalizacion deshabilitada temporalmente; se deja el bloque como referencia.
-      <Divider />
-
-      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-        <Typography.Title level={5} style={{ margin: 0 }}>
-          Normalizacion (UMLS)
-        </Typography.Title>
-        <Tooltip title="Usa tu UMLS_APIKEY en el backend para mapear entidades a codigos RxNorm/SNOMED CT/ICD-10.">
-          <InfoCircleOutlined />
-        </Tooltip>
-      </div>
-
-      <Form.Item
-        name="normalize"
-        valuePropName="checked"
-        style={{ marginTop: 8 }}
-        extra="Si esta activado, las entidades extraidas se vinculan a codigos estandarizados."
-      >
-        <Switch checkedChildren="Activado" unCheckedChildren="Desactivado" />
-      </Form.Item>
-
-      <Form.Item
-        label={
-          <span>
-            Umbral minimo de similitud{" "}
-            <Tooltip title="Valores 0–1. Recomendado: 0.6–0.7 para equilibrio precision/recall.">
-              <InfoCircleOutlined />
-            </Tooltip>
-          </span>
-        }
-        name="min_link_score"
-      >
-        <InputNumber min={0} max={1} step={0.05} style={{ width: "100%" }} placeholder="0.60" />
-      </Form.Item>
-
-      <Form.Item
-        label="Max. candidatos por entidad"
-        name="max_candidates"
-        tooltip="Numero de candidatos CUI antes de mapear a codigos de vocabulario."
-      >
-        <InputNumber min={1} max={100} style={{ width: "100%" }} />
-      </Form.Item>
-      */}
+      {watchedModel === "llm" && <LlmPrivacyAlert className="mb-4" />}
 
       <Space style={{ marginTop: 8 }}>
         <Button onClick={() => form.resetFields()}>Restablecer</Button>

@@ -2,7 +2,7 @@
  * Core type definitions for the MedAI frontend application.
  *
  * This module defines the data structures that mirror the Backend API contracts
- * for clinical entity extraction, normalization, and batch processing. These types
+ * for clinical entity extraction, optional code mappings, and batch processing. These types
  * serve as the single source of truth for data shapes flowing between the UI
  * components and the API client layer.
  *
@@ -17,17 +17,17 @@
  */
 
 /**
- * Terminology code associated with a normalized clinical entity.
+ * Optional terminology code associated with an extracted clinical entity.
  *
  * Represents a mapping from an extracted entity to a standardized medical
- * vocabulary system such as SNOMED CT, RxNorm, or ICD-10. The MedAI backend
- * performs entity linking to produce these codes, enabling interoperability
- * with electronic health record systems and clinical decision support tools.
+ * vocabulary system such as SNOMED CT, RxNorm, or ICD-10. Depending on backend
+ * configuration, these codes may be present to support interoperability with
+ * electronic health record systems and clinical analytics workflows.
  *
  * @remarks
- * The `score` field indicates the confidence of the normalization mapping,
- * not the extraction confidence. A high extraction score with a low normalization
- * score suggests the entity was clearly identified but ambiguously mapped.
+ * The `score` field indicates the confidence of the code mapping, not the
+ * extraction confidence. A high extraction score with a low mapping score
+ * suggests the entity was clearly identified but ambiguously linked.
  *
  * @example
  * ```typescript
@@ -70,7 +70,7 @@ export type Code = {
   display?: string;
 
   /**
-   * Confidence score for the normalization mapping.
+   * Confidence score for the code mapping.
    *
    * A value between 0 and 1 indicating how confident the backend is that
    * this code correctly represents the extracted entity. Higher values
@@ -78,15 +78,15 @@ export type Code = {
    *
    * @remarks
    * This score is distinct from the entity extraction score. An entity
-   * may be extracted with high confidence but normalized with lower
-   * confidence if the term is ambiguous across vocabularies.
+   * may be extracted with high confidence but linked with lower confidence
+   * if the term is ambiguous across vocabularies.
    */
   score?: number;
 
   /**
    * Source or strategy used by the backend to produce the mapping.
    *
-   * Indicates which normalization service or algorithm generated this code.
+   * Indicates which backend service or algorithm generated this code.
    * Useful for debugging and understanding the provenance of mappings.
    *
    * @example "umls", "custom_dictionary", "exact_match"
@@ -168,16 +168,16 @@ export type Entity = {
   score?: number;
 
   /**
-   * Single normalized code for backward compatibility.
+   * Single mapped code for backward compatibility.
    *
    * @deprecated Prefer using the `codes` array which supports multiple
-   * normalizations with scores. This field is maintained for compatibility
+   * code mappings with scores. This field is maintained for compatibility
    * with older backend versions.
    */
   code?: string;
 
   /**
-   * List of normalized codes with optional scores and display labels.
+   * List of mapped terminology codes with optional scores and display labels.
    *
    * Contains zero or more {@link Code} objects representing mappings to
    * standardized medical vocabularies. Multiple codes may be present when
@@ -192,7 +192,7 @@ export type Entity = {
  *
  * Contains the complete result of a clinical text extraction request,
  * including the original text, all extracted entities with their offsets
- * and normalizations, and backend metadata for auditability.
+ * and optional code mappings, and backend metadata for auditability.
  *
  * @remarks
  * This type is returned by the `/notes/{id}` endpoint and may also be
@@ -220,7 +220,7 @@ export type ExtractResponse = {
   text: string;
 
   /**
-   * Extracted entities with offsets and optional normalization.
+   * Extracted entities with offsets and optional code mappings.
    *
    * An array of {@link Entity} objects representing all clinically relevant
    * spans identified in the text. The array may be empty if no entities

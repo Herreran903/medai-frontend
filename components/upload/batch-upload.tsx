@@ -49,6 +49,7 @@ import type { Dayjs } from "dayjs";
 import { useModelSettings } from "../providers/model-settings-provider";
 import type { UploadFile, UploadChangeParam } from "antd/es/upload/interface";
 import LoadingOverlay from "@/components/ui/LoadingOverlay";
+import LlmPrivacyAlert from "@/components/ui/llm-privacy-alert";
 import { notify } from "@/lib/notifications";
 import { toUserMessage } from "@/lib/http";
 
@@ -102,8 +103,21 @@ export default function BatchUpload() {
   const [loading, setLoading] = useState(false);
   const [form] = Form.useForm();
   const [showResultsOnly, setShowResultsOnly] = useState(false);
-  const modelLabel =
-    settings.model === "lstm" ? "BiLSTM-CRF" : settings.model === "llm" ? "LLM" : "Transformer";
+  const isLlmSelected = settings.model === "llm";
+  const modelLabel = (() => {
+    switch (settings.model) {
+      case "transformer":
+        return "Transformer (RoBERTa con stride)";
+      case "crf":
+        return "CRF (sklearn-crfsuite)";
+      case "lstm":
+        return "BiLSTM (solo)";
+      case "lstm_crf":
+        return "BiLSTM-CRF";
+      case "llm":
+        return "LLM (GPT)";
+    }
+  })();
 
   /**
    * Transforms uploaded files into table data source format.
@@ -232,16 +246,6 @@ export default function BatchUpload() {
         fd.append("model_variant", settings.model_variant.trim());
       }
       fd.append("save", "true");
-      // Normalizacion deshabilitada temporalmente; se deja la logica como referencia.
-      // if (typeof settings.normalize === "boolean") {
-      //   fd.append("normalize", String(settings.normalize));
-      // }
-      // if (settings.systems?.length) {
-      //   fd.append("systems_csv", settings.systems.join(","));
-      // }
-      // if (settings.restrict_types?.length) {
-      //   fd.append("restrict_types_csv", settings.restrict_types.join(","));
-      // }
 
       /* Per-file metadata so the backend can persist episode and note date. */
       const notesMeta = files.map((f) => ({
@@ -307,6 +311,8 @@ export default function BatchUpload() {
       <Form layout="vertical" form={form} onFinish={onFinish}>
         <LoadingOverlay show={loading} text="Procesando extraccion por lote…" />
 
+        {!showResultsOnly && isLlmSelected && <LlmPrivacyAlert className="mb-3" />}
+
         {!showResultsOnly && (
           <>
             <Dragger
@@ -350,6 +356,7 @@ export default function BatchUpload() {
                   Variante oculta en UI (se fuerza en el provider):
                   - transformer -> roberta
                   - llm -> gpt
+                  - crf/lstm/lstm_crf -> null
                 */}
               </Typography.Text>
             </Space>

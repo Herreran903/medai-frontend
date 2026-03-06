@@ -61,11 +61,10 @@ import { BatchAckResponse, ExtractAck, ExtractResponse } from "./types";
  * **Expected FormData fields:**
  * - `text` — Raw clinical text content (mutually exclusive with `file`)
  * - `file` — Uploaded document file (mutually exclusive with `text`)
+ * - `episode_id` — Clinical episode or encounter identifier
+ * - `note_date` — Clinical note timestamp (ISO 8601)
  * - `model` — NER model identifier (e.g., "medai-ner-v2")
  * - `model_variant` — Optional model variant or configuration
- * - `normalize` — Boolean flag to enable entity normalization
- * - `systems_csv` — Comma-separated vocabulary systems for normalization
- * - `restrict_types_csv` — Comma-separated entity types to extract
  *
  * The function is used by the single-upload component for individual note
  * processing workflows.
@@ -80,9 +79,9 @@ import { BatchAckResponse, ExtractAck, ExtractResponse } from "./types";
  * ```typescript
  * const formData = new FormData();
  * formData.append("text", clinicalNote);
+ * formData.append("episode_id", "EP-001");
+ * formData.append("note_date", new Date().toISOString());
  * formData.append("model", "medai-ner-v2");
- * formData.append("normalize", "true");
- * formData.append("systems_csv", "SNOMEDCT_US,RXNORM");
  *
  * const ack = await extractEntitiesAck(formData);
  * console.log(`Note stored with ID: ${ack.id}`);
@@ -103,7 +102,7 @@ export async function extractEntitiesAck(formData: FormData): Promise<ExtractAck
  * @remarks
  * The note ID is URL-encoded to handle special characters safely. The
  * response includes the original text, all extracted entities with their
- * offsets and normalizations, and backend metadata.
+ * offsets, optional code mappings, and backend metadata.
  *
  * This function is typically called:
  * - After single extraction when `ExtractAck.result` is null
@@ -141,9 +140,6 @@ export async function fetchNote(noteId: string): Promise<ExtractResponse> {
  * - `files` — Repeated field containing multiple file uploads
  * - `model` — NER model identifier
  * - `model_variant` — Optional model variant or configuration
- * - `normalize` — Boolean flag to enable entity normalization
- * - `systems_csv` — Comma-separated vocabulary systems for normalization
- * - `restrict_types_csv` — Comma-separated entity types to extract
  * - `save` — Boolean flag to persist notes to the database
  * - `notes_meta` — JSON-encoded metadata for each file
  *
@@ -162,7 +158,6 @@ export async function fetchNote(noteId: string): Promise<ExtractResponse> {
  * const formData = new FormData();
  * files.forEach(file => formData.append("files", file));
  * formData.append("model", "medai-ner-v2");
- * formData.append("normalize", "true");
  * formData.append("save", "true");
  *
  * const response = await extractEntitiesBatchAck(formData);

@@ -5,20 +5,18 @@
  *
  * This module provides a React Context-based state management solution for
  * extraction model configuration. It serves as the single source of truth for
- * model selection, variant configuration, and normalization parameters across
- * all extraction workflows in the application.
+ * model selection and variant coercion across all extraction workflows in the
+ * application.
  *
  * @remarks
  * **Architectural Role:**
  * The provider enforces business rules that ensure UI selections remain compatible
- * with Backend API expectations. Certain fields (vocabulary systems and entity types
- * for normalization) are locked to prevent configuration drift between frontend and
- * backend.
+ * with Backend API expectations by keeping model variants aligned with the selected
+ * model family.
  *
  * **Key Features:**
  * - Centralized model configuration state
  * - Automatic variant coercion when switching model families
- * - Locked fields that cannot be modified by UI components
  * - Type-safe settings with full TypeScript support
  *
  * @example
@@ -54,52 +52,22 @@
 import React, { createContext, useContext, useState } from "react";
 
 /**
- * Locked normalization vocabulary systems (SABs) required by the Backend API.
- *
- * These vocabulary identifiers correspond to UMLS source abbreviations and are
- * enforced by the provider to ensure the UI cannot diverge from backend expectations.
- * Any attempt to modify these values through `setSettings` will be overwritten.
- *
- * @remarks
- * The locked vocabularies are:
- * - `RXNORM` — Drug names, ingredients, and clinical drug forms
- * - `SNOMEDCT_US` — Clinical terms covering diseases, findings, and procedures
- * - `ICD10CM` — Diagnosis codes for billing and classification
- *
- * These systems were selected based on clinical utility and backend normalization
- * service capabilities.
- */
-// Normalizacion deshabilitada temporalmente; se dejan constantes como referencia.
-// export const LOCKED_SABS = ["RXNORM", "SNOMEDCT_US", "ICD10CM"] as const;
-
-/**
- * Locked entity types eligible for normalization.
- *
- * Only entities of these types will be sent to the normalization service.
- * This restriction ensures normalization resources are focused on entity
- * types where vocabulary mapping provides clinical value.
- *
- * @remarks
- * Currently limited to `DX` (diagnosis) entities, as these benefit most from
- * standardized coding for interoperability and analytics purposes.
- */
-// export const LOCKED_ENTITY_TYPES = ["DX"] as const;
-
-/**
  * Supported extraction model families exposed in the UI.
  *
  * Each model family represents a different NER architecture with distinct
  * performance characteristics and resource requirements:
  *
- * - `transformer` — BERT-based models (BETO, RoBERTa) with high accuracy
- * - `lstm` — Recurrent neural network models with lower resource requirements
- * - `llm` — Large language model-based extraction (Claude, GPT, local models)
+ * - `transformer` — Transformer-based NER (RoBERTa con stride)
+ * - `crf` — CRF clásico (sklearn-crfsuite)
+ * - `lstm` — BiLSTM (solo)
+ * - `lstm_crf` — BiLSTM-CRF
+ * - `llm` — Large language model-based extraction (GPT)
  *
  * @remarks
  * The model family selection affects which variants are available and how
  * the extraction request is processed by the Backend API.
  */
-export type ModelKind = "transformer" | "lstm" | "llm";
+export type ModelKind = "transformer" | "crf" | "lstm" | "lstm_crf" | "llm";
 
 /**
  * Available variants for LLM-based extraction models.
@@ -153,9 +121,11 @@ function defaultVariantForModel(model: ModelKind): string | null {
       return "gpt";
     case "transformer":
       return "roberta";
+    case "crf":
     case "lstm":
+    case "lstm_crf":
     default:
-      /* LSTM models do not expose configurable variants. */
+      /* These models do not expose configurable variants. */
       return null;
   }
 }
@@ -178,10 +148,9 @@ function coerceVariant(model: ModelKind, _variant: string | null | undefined): s
    * We enforce a single backend variant per model family:
    * - transformer -> roberta
    * - llm -> gpt
-   * - lstm -> null
+   * - crf/lstm/lstm_crf -> null
    */
   void _variant;
-  if (model === "lstm") return null;
   return defaultVariantForModel(model);
 }
 
@@ -192,21 +161,11 @@ function coerceVariant(model: ModelKind, _variant: string | null | undefined): s
  * requests. These values are used to build the FormData payload sent to
  * the Backend API extraction endpoints.
  *
- * @remarks
- * The `systems` and `restrict_types` fields are enforced to locked defaults
- * on every update through `setSettings`. This ensures the UI cannot accidentally
- * or intentionally diverge from backend expectations for normalization behavior.
- *
  * @example
  * ```typescript
  * const settings: ModelSettings = {
  *   model: "transformer",
- *   model_variant: "roberta",
- *   normalize: true,
- *   systems: ["RXNORM", "SNOMEDCT_US", "ICD10CM"],
- *   restrict_types: ["DX"],
- *   min_link_score: 0.6,
- *   max_candidates: 25
+ *   model_variant: "roberta"
  * };
  * ```
  */
@@ -227,56 +186,6 @@ export type ModelSettings = {
    * which do not have configurable variants.
    */
   model_variant: string | null;
-
-  // Normalizacion deshabilitada temporalmente; se deja documentacion como referencia.
-  // /**
-  //  * Enables UMLS-based normalization for extracted entities.
-  //  *
-  //  * When true, extracted entities are linked to standardized medical
-  //  * vocabulary codes (SNOMED CT, RxNorm, ICD-10). This enables
-  //  * interoperability with EHR systems and clinical analytics.
-  //  */
-  // normalize: boolean;
-  //
-  // /**
-  //  * Target vocabulary systems (SABs) for normalization.
-  //  *
-  //  * @remarks
-  //  * This field is locked to {@link LOCKED_SABS} and cannot be modified
-  //  * through the UI. Any values set will be overwritten by the provider.
-  //  */
-  // systems: string[];
-  //
-  // /**
-  //  * Entity types eligible for normalization.
-  //  *
-  //  * @remarks
-  //  * This field is locked to {@link LOCKED_ENTITY_TYPES} and cannot be
-  //  * modified through the UI. Only diagnosis entities are normalized.
-  //  */
-  // restrict_types: string[];
-  //
-  // /**
-  //  * Minimum similarity score required to accept a linked code.
-  //  *
-  //  * Codes with similarity scores below this threshold are filtered out
-  //  * from normalization results. Higher values increase precision but
-  //  * may reduce recall for ambiguous terms.
-  //  *
-  //  * @remarks
-  //  * Valid range is 0.0 to 1.0. Recommended values are 0.5-0.8 depending
-  //  * on the desired precision/recall tradeoff.
-  //  */
-  // min_link_score: number;
-  //
-  // /**
-  //  * Maximum candidate CUIs considered per entity during normalization.
-  //  *
-  //  * Limits the number of concept candidates evaluated for each entity,
-  //  * affecting both performance and result completeness. Higher values
-  //  * may find better matches but increase processing time.
-  //  */
-  // max_candidates: number;
 };
 
 /**
@@ -289,19 +198,11 @@ export type ModelSettings = {
  * The defaults prioritize:
  * - Transformer models for accuracy
  * - RoBERTa variant for transformer
- * - Normalization disabled by default (opt-in)
- * - Conservative linking thresholds for precision
+ * - Minimal configuration surface in the current UI
  */
 export const DEFAULTS: ModelSettings = {
   model: "transformer",
   model_variant: defaultVariantForModel("transformer"),
-  // Normalizacion deshabilitada temporalmente; se dejan defaults como referencia.
-  // normalize: false,
-  // /* Use copies to avoid accidental external mutation. */
-  // systems: [...LOCKED_SABS],
-  // restrict_types: [...LOCKED_ENTITY_TYPES],
-  // min_link_score: 0.6,
-  // max_candidates: 25,
 };
 
 /**
@@ -312,7 +213,7 @@ type ModelSettingsContextValue = {
   /** Current model settings state. */
   settings: ModelSettings;
   /**
-   * Updates settings while enforcing locked fields and variant coercion.
+   * Updates settings while enforcing variant coercion.
    * Use this instead of setting state directly in components.
    */
   setSettings: (s: ModelSettings) => void;
@@ -339,14 +240,11 @@ type ModelSettingsProviderProps = {
  * Context provider for global extraction model settings.
  *
  * This component serves as the single source of truth for model configuration
- * across the MedAI frontend. It manages state for model selection, variant
- * configuration, and normalization parameters while enforcing business rules
- * that ensure compatibility with the Backend API.
+ * across the MedAI frontend. It manages state for model selection and variant
+ * configuration while enforcing compatibility rules expected by the Backend API.
  *
  * @remarks
  * **Enforcement Behavior:**
- * - The `systems` field is always reset to {@link LOCKED_SABS}
- * - The `restrict_types` field is always reset to {@link LOCKED_ENTITY_TYPES}
  * - The `model_variant` is coerced to a valid value for the selected model family
  *
  * **Placement:**
@@ -375,22 +273,11 @@ type ModelSettingsProviderProps = {
 export const ModelSettingsProvider: React.FC<ModelSettingsProviderProps> = ({ children }) => {
   const [settings, setState] = useState<ModelSettings>(DEFAULTS);
 
-  // /**
-  //  * Enforces locked fields by overwriting with constant values.
-  //  * @internal
-  //  */
-  // const enforceLocked = (s: ModelSettings): ModelSettings => ({
-  //   ...s,
-  //   systems: [...LOCKED_SABS],
-  //   restrict_types: [...LOCKED_ENTITY_TYPES],
-  // });
-
   /**
-   * Updates settings with enforcement of locked fields and variant coercion.
+   * Updates settings with variant coercion.
    */
   const updateSettings = (next: ModelSettings) => {
-    /* Merge-on-write while enforcing locked fields. */
-    // const merged = enforceLocked({ ...settings, ...next });
+    /* Merge-on-write for the current model settings surface. */
     const merged = { ...settings, ...next };
 
     /* Ensure the variant stays valid after any model change. */
@@ -412,20 +299,14 @@ export const ModelSettingsProvider: React.FC<ModelSettingsProviderProps> = ({ ch
  *
  * @example
  * ```tsx
- * function NormalizationToggle() {
+ * function ModelSelector() {
  *   const { settings, setSettings } = useModelSettings();
  *
- *   const handleToggle = (checked: boolean) => {
- *     setSettings({ ...settings, normalize: checked });
+ *   const handleModelChange = (model: ModelKind) => {
+ *     setSettings({ ...settings, model });
  *   };
  *
- *   return (
- *     <Switch
- *       checked={settings.normalize}
- *       onChange={handleToggle}
- *       label="Enable entity normalization"
- *     />
- *   );
+ *   return <Select value={settings.model} onChange={handleModelChange} />;
  * }
  * ```
  *
@@ -442,8 +323,6 @@ export const ModelSettingsProvider: React.FC<ModelSettingsProviderProps> = ({ ch
  *     if (settings.model_variant) {
  *       formData.append("model_variant", settings.model_variant);
  *     }
- *     formData.append("normalize", String(settings.normalize));
- *     formData.append("systems_csv", settings.systems.join(","));
  *     return formData;
  *   };
  *

@@ -49,6 +49,7 @@ import { useModelSettings } from "../providers/model-settings-provider";
 import type { UploadFile, UploadChangeParam } from "antd/es/upload/interface";
 import type { Dayjs } from "dayjs";
 import LoadingOverlay from "@/components/ui/LoadingOverlay";
+import LlmPrivacyAlert from "@/components/ui/llm-privacy-alert";
 import { notify } from "@/lib/notifications";
 import { toUserMessage } from "@/lib/http";
 
@@ -165,8 +166,8 @@ type FormValues = {
  *
  * **Model Settings:**
  * The component reads model configuration from the {@link ModelSettingsProvider}
- * context and includes all settings (model, variant, normalization parameters)
- * in the extraction request.
+ * context and includes the model family plus derived variant in the extraction
+ * request.
  *
  * **Navigation:**
  * On successful extraction, the user is automatically redirected to the results
@@ -191,12 +192,25 @@ export default function SingleUpload() {
   const { settings } = useModelSettings();
   const [loading, setLoading] = useState(false);
   const [form] = Form.useForm<FormValues>();
+  const isLlmSelected = settings.model === "llm";
 
   const texto = Form.useWatch<string>("texto", form);
   const watchedFiles = Form.useWatch<UploadFile[]>("file", form);
   const fileList = useMemo<UploadFile[]>(() => watchedFiles ?? [], [watchedFiles]);
-  const modelLabel =
-    settings.model === "lstm" ? "BiLSTM-CRF" : settings.model === "llm" ? "LLM" : "Transformer";
+  const modelLabel = (() => {
+    switch (settings.model) {
+      case "transformer":
+        return "Transformer (RoBERTa con stride)";
+      case "crf":
+        return "CRF (sklearn-crfsuite)";
+      case "lstm":
+        return "BiLSTM (solo)";
+      case "lstm_crf":
+        return "BiLSTM-CRF";
+      case "llm":
+        return "LLM (GPT)";
+    }
+  })();
 
   /**
    * Normalizes the file list from upload events.
@@ -294,30 +308,12 @@ export default function SingleUpload() {
       fd.append("episode_id", String(values.episodio).trim());
       fd.append("note_date", values.fecha.toDate().toISOString());
 
-      /* Model configuration and normalization flags. */
+      /* Model configuration fields. */
       fd.append("model", settings.model);
       /* Optional model variant, when supported by the backend. */
       if (typeof settings.model_variant === "string" && settings.model_variant.trim().length > 0) {
         fd.append("model_variant", settings.model_variant.trim());
       }
-      // Normalizacion deshabilitada temporalmente; se deja la logica como referencia.
-      // fd.append("normalize", String(settings.normalize));
-
-      /* Locked vocabularies and entity types defined by the provider. */
-      // if (settings.systems?.length) {
-      //   fd.append("systems_csv", settings.systems.join(","));
-      // }
-      // if (settings.restrict_types?.length) {
-      //   fd.append("restrict_types_csv", settings.restrict_types.join(","));
-      // }
-
-      /* Linking thresholds are included to align with batch behavior. */
-      // if (typeof settings.min_link_score === "number") {
-      //   fd.append("min_link_score", settings.min_link_score.toString());
-      // }
-      // if (typeof settings.max_candidates === "number") {
-      //   fd.append("max_candidates", settings.max_candidates.toString());
-      // }
 
       const ack = await extractEntities(fd);
 
@@ -348,6 +344,9 @@ export default function SingleUpload() {
     <div className="space-y-4">
       <Form layout="vertical" form={form} onFinish={onSubmit} className="relative">
         <LoadingOverlay show={loading} text="Procesando extracción…" />
+
+        {isLlmSelected && <LlmPrivacyAlert className="mb-4" />}
+
         <Row gutter={12}>
           <Col xs={24} md={12}>
             <Form.Item
@@ -427,6 +426,7 @@ export default function SingleUpload() {
               Variante oculta en UI (se fuerza en el provider):
               - transformer -> roberta
               - llm -> gpt
+              - crf/lstm/lstm_crf -> null
             */}
           </Typography.Text>
         </Space>

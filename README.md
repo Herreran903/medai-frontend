@@ -2,14 +2,14 @@
 
 MedAI Frontend is the clinical web interface for MedAI entity extraction.
 It is a React/Next.js application that consumes the **Backend API** (FastAPI)
-and presents extraction and normalization results for clinical review.
+and presents extraction results for clinical review.
 
 ## What MedAI is (and is not)
 
 MedAI Frontend:
 
 - Provides clinician-facing workflows for single and batch extraction.
-- Visualizes extracted entities, normalization codes, and backend metadata.
+- Visualizes extracted entities and backend metadata.
 - Serves as the reference implementation of the **Frontend API**.
 
 MedAI Frontend is not:
@@ -23,7 +23,7 @@ MedAI Frontend is not:
 - **Next.js App Router** for routing, layout, and client rendering.
 - **HTTP client layer** in `lib/http.ts` with normalized error handling.
 - **Backend API services** in `lib/api.ts` for extraction endpoints.
-- **Model settings provider** in `components/providers` to enforce locked defaults.
+- **Model settings provider** in `components/providers` for global model selection and variant coercion.
 - **UI modules** for uploads, settings, entity legends, and results.
 
 ## UI -> Backend API flow
