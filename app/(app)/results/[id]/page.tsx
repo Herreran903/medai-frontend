@@ -20,11 +20,13 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Button, Typography, Alert } from "antd";
+import { DownloadOutlined } from "@ant-design/icons";
 import EntityResult from "@/components/results/entity-result";
-import { fetchNote } from "@/lib/api";
+import { fetchNote, downloadNoteExcel } from "@/lib/api";
 import { ExtractResponse } from "@/lib/types";
 import LoadingOverlay from "@/components/ui/LoadingOverlay";
 import { toUserMessage } from "@/lib/http";
+import { notify } from "@/lib/notifications";
 
 /**
  * Normalizes any error into a user-facing message.
@@ -54,6 +56,7 @@ export default function ResultPage() {
   const [data, setData] = useState<ExtractResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState<string | null>(null);
+  const [downloading, setDownloading] = useState(false);
 
   /**
    * Fetches note data on mount and when ID changes.
@@ -76,6 +79,28 @@ export default function ResultPage() {
     };
   }, [id]);
 
+  /**
+   * Downloads the extraction result as an Excel file and triggers
+   * a browser download via a temporary anchor element.
+   */
+  async function handleDownload() {
+    if (!id) return;
+    try {
+      setDownloading(true);
+      const blob = await downloadNoteExcel(id);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `resultados_${id.slice(0, 8)}.xlsx`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      notify.error(toUserMessage(e));
+    } finally {
+      setDownloading(false);
+    }
+  }
+
   return (
     <div className="relative">
       <LoadingOverlay show={loading} text="Cargando resultados de extracción…" />
@@ -83,7 +108,17 @@ export default function ResultPage() {
         <Typography.Title level={4} className="!mb-0">
           Resultados
         </Typography.Title>
-        <Button onClick={() => router.back()}>Volver</Button>
+        <div className="flex gap-2">
+          <Button
+            icon={<DownloadOutlined />}
+            loading={downloading}
+            disabled={!data}
+            onClick={handleDownload}
+          >
+            Descargar Excel
+          </Button>
+          <Button onClick={() => router.back()}>Volver</Button>
+        </div>
       </div>
 
       {/* Error state */}

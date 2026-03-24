@@ -201,3 +201,33 @@ export async function extractEntities(formData: FormData): Promise<ExtractAck> {
 export async function extractEntitiesBatch(formData: FormData): Promise<BatchAckResponse> {
   return extractEntitiesBatchAck(formData);
 }
+
+/**
+ * Downloads the extraction result for a note as an Excel file (.xlsx).
+ *
+ * The file contains two sheets:
+ * - **"Resultados"**: raw entity data (type, text, code, start, end).
+ * - **"Normalizado"**: entity type and clean numeric/text value.
+ *
+ * @param noteId - The unique note identifier returned by extraction endpoints.
+ * @returns Promise resolving to a Blob with the Excel file content.
+ * @throws {@link ApiError} with status 404 if the note ID does not exist.
+ *
+ * @example
+ * ```typescript
+ * const blob = await downloadNoteExcel(noteId);
+ * const url = URL.createObjectURL(blob);
+ * const a = document.createElement("a");
+ * a.href = url;
+ * a.download = "resultados.xlsx";
+ * a.click();
+ * URL.revokeObjectURL(url);
+ * ```
+ */
+export async function downloadNoteExcel(noteId: string): Promise<Blob> {
+  const { data } = await http.get<Blob>(
+    `/notes/${encodeURIComponent(noteId)}/export`,
+    { responseType: "blob" },
+  );
+  return data;
+}
