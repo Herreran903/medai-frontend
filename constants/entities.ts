@@ -51,15 +51,10 @@
  * - `PEEP` — Positive end-expiratory pressure
  * - `FR` — Respiratory rate
  * - `VT` — Tidal volume
- * - `FLUJO` — Flow rate
  * - `I_E` — Inspiration:expiration ratio
- * - `SENS` — Trigger sensitivity
  *
  * **Ventilation Monitoring:**
  * - `SAO2` — Oxygen saturation
- * - `PP` — Peak pressure
- * - `PMES` — Plateau pressure
- * - `PM` — Mechanical power
  *
  * **Anthropometrics:**
  * - `EDAD` — Age
@@ -93,13 +88,8 @@ export type BaseEntity =
   | "PEEP"
   | "FR"
   | "VT"
-  | "FLUJO"
   | "I_E"
-  | "SENS"
   | "SAO2"
-  | "PP"
-  | "PMES"
-  | "PM"
   | "EDAD"
   | "PESO"
   | "TALLA"
@@ -200,30 +190,12 @@ export const ENTITY_INFO: Record<BaseEntity, { color: `#${string}`; description:
   },
 
   /**
-   * Inspiratory flow rate.
-   * The rate at which gas is delivered during inspiration.
-   */
-  FLUJO: {
-    color: "#06b6d4",
-    description: "Flujo inspiratorio (L/min).",
-  },
-
-  /**
    * Inspiration to expiration ratio.
    * The time ratio between inspiratory and expiratory phases.
    */
   I_E: {
     color: "#84cc16",
     description: "Relacion inspiracion:espiracion (I:E).",
-  },
-
-  /**
-   * Trigger sensitivity.
-   * The threshold for patient-initiated breaths.
-   */
-  SENS: {
-    color: "#a3e635",
-    description: "Sensibilidad del disparo / trigger inspiratorio.",
   },
 
   /* ─────────────────────────────────────────────────────────────────────────
@@ -238,33 +210,6 @@ export const ENTITY_INFO: Record<BaseEntity, { color: `#${string}`; description:
   SAO2: {
     color: "#38bdf8",
     description: "Saturacion de oxigeno (SaO₂/SpO₂ %).",
-  },
-
-  /**
-   * Peak inspiratory pressure.
-   * Maximum pressure reached during inspiration.
-   */
-  PP: {
-    color: "#60a5fa",
-    description: "Presion inspiratoria pico (cmH₂O).",
-  },
-
-  /**
-   * Plateau pressure.
-   * Pressure measured during an inspiratory hold.
-   */
-  PMES: {
-    color: "#34d399",
-    description: "Presion de meseta (cmH₂O).",
-  },
-
-  /**
-   * Mechanical power.
-   * Energy transferred to the respiratory system per unit time.
-   */
-  PM: {
-    color: "#10b981",
-    description: "Potencia mecanica (J/min).",
   },
 
   /* ─────────────────────────────────────────────────────────────────────────
