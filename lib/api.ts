@@ -225,9 +225,8 @@ export async function extractEntitiesBatch(formData: FormData): Promise<BatchAck
  * ```
  */
 export async function downloadNoteExcel(noteId: string): Promise<Blob> {
-  const { data } = await http.get<Blob>(
-    `/notes/${encodeURIComponent(noteId)}/export`,
-    { responseType: "blob" },
-  );
+  const { data } = await http.get<Blob>(`/notes/${encodeURIComponent(noteId)}/export`, {
+    responseType: "blob",
+  });
   return data;
 }
