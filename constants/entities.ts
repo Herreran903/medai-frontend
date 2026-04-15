@@ -64,8 +64,6 @@
  * **Vital Signs:**
  * - `TEMP` — Temperature
  * - `PA` — Blood pressure (combined)
- * - `PAS` — Systolic blood pressure
- * - `PAD` — Diastolic blood pressure
  * - `PAM` — Mean arterial pressure
  * - `FC` — Heart rate
  * - `GLICEMIA` — Blood glucose
@@ -95,8 +93,6 @@ export type BaseEntity =
   | "TALLA"
   | "TEMP"
   | "PA"
-  | "PAS"
-  | "PAD"
   | "PAM"
   | "FC"
   | "GLICEMIA"
@@ -265,24 +261,6 @@ export const ENTITY_INFO: Record<BaseEntity, { color: `#${string}`; description:
   PA: {
     color: "#fb7185",
     description: "Presion arterial, sistolica/diastolica (mmHg).",
-  },
-
-  /**
-   * Systolic blood pressure.
-   * Peak arterial pressure during cardiac contraction.
-   */
-  PAS: {
-    color: "#fda4af",
-    description: "Presion arterial sistolica (mmHg).",
-  },
-
-  /**
-   * Diastolic blood pressure.
-   * Minimum arterial pressure during cardiac relaxation.
-   */
-  PAD: {
-    color: "#fca5a5",
-    description: "Presion arterial diastolica (mmHg).",
   },
 
   /**
