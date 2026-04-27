@@ -44,7 +44,7 @@ type EntityResultProps = {
    *
    * The complete response from the Backend API extraction endpoint,
    * including the original clinical text, extracted entities with
-   * offsets and optional code mappings, and backend metadata.
+   * offsets and normalized values, and backend metadata.
    */
   data: ExtractResponse;
 };
@@ -67,15 +67,21 @@ function buildHighlighted(text: string, entities: Entity[]) {
   if (!text) return null;
   if (!entities?.length) return <Typography.Text>{text}</Typography.Text>;
 
-  const sorted = [...entities].sort(
-    (a, b) => a.start - b.start || b.end - b.start - (a.end - a.start)
-  );
+  const sorted = [...entities].sort((a, b) => {
+    const aStart = a.start ?? Number.MAX_SAFE_INTEGER;
+    const bStart = b.start ?? Number.MAX_SAFE_INTEGER;
+    const aEnd = a.end ?? aStart;
+    const bEnd = b.end ?? bStart;
+    return aStart - bStart || bEnd - bStart - (aEnd - aStart);
+  });
 
   const chunks: React.ReactNode[] = [];
   let cursor = 0;
 
   for (const ent of sorted) {
-    const { start, end, type } = ent;
+    const start = ent.start ?? NaN;
+    const end = ent.end ?? NaN;
+    const { type } = ent;
     if (isNaN(start) || isNaN(end) || start < cursor || end <= start || end > text.length) continue;
 
     if (cursor < start) {

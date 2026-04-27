@@ -63,7 +63,7 @@ import { BatchAckResponse, ExtractAck, ExtractResponse } from "./types";
  * - `file` — Uploaded document file (mutually exclusive with `text`)
  * - `episode_id` — Clinical episode or encounter identifier
  * - `note_date` — Clinical note timestamp (ISO 8601)
- * - `model` — NER model identifier (e.g., "medai-ner-v2")
+ * - `model` — NER model identifier (`crf`, `lstm`, `lstm_crf`, `transformer`, `llm`)
  * - `model_variant` — Optional model variant or configuration
  *
  * The function is used by the single-upload component for individual note
@@ -81,7 +81,7 @@ import { BatchAckResponse, ExtractAck, ExtractResponse } from "./types";
  * formData.append("text", clinicalNote);
  * formData.append("episode_id", "EP-001");
  * formData.append("note_date", new Date().toISOString());
- * formData.append("model", "medai-ner-v2");
+ * formData.append("model", "transformer");
  *
  * const ack = await extractEntitiesAck(formData);
  * console.log(`Note stored with ID: ${ack.id}`);
@@ -102,7 +102,7 @@ export async function extractEntitiesAck(formData: FormData): Promise<ExtractAck
  * @remarks
  * The note ID is URL-encoded to handle special characters safely. The
  * response includes the original text, all extracted entities with their
- * offsets, optional code mappings, and backend metadata.
+ * offsets, normalized values, and backend metadata.
  *
  * This function is typically called:
  * - After single extraction when `ExtractAck.result` is null
@@ -140,7 +140,6 @@ export async function fetchNote(noteId: string): Promise<ExtractResponse> {
  * - `files` — Repeated field containing multiple file uploads
  * - `model` — NER model identifier
  * - `model_variant` — Optional model variant or configuration
- * - `save` — Boolean flag to persist notes to the database
  * - `notes_meta` — JSON-encoded metadata for each file
  *
  * The function is used by the batch-upload component for multi-file
@@ -157,8 +156,7 @@ export async function fetchNote(noteId: string): Promise<ExtractResponse> {
  * ```typescript
  * const formData = new FormData();
  * files.forEach(file => formData.append("files", file));
- * formData.append("model", "medai-ner-v2");
- * formData.append("save", "true");
+ * formData.append("model", "transformer");
  *
  * const response = await extractEntitiesBatchAck(formData);
  *

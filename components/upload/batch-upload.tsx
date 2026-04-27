@@ -245,8 +245,6 @@ export default function BatchUpload() {
       if (typeof settings.model_variant === "string" && settings.model_variant.trim().length > 0) {
         fd.append("model_variant", settings.model_variant.trim());
       }
-      fd.append("save", "true");
-
       /* Per-file metadata so the backend can persist episode and note date. */
       const notesMeta = files.map((f) => ({
         filename: f.name,

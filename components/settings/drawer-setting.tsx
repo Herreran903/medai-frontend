@@ -31,7 +31,11 @@
 
 import { Form, Select, Button, Space, Typography } from "antd";
 import LlmPrivacyAlert from "@/components/ui/llm-privacy-alert";
-import { useModelSettings, type ModelKind } from "../providers/model-settings-provider";
+import {
+  defaultVariantForModel,
+  useModelSettings,
+  type ModelKind,
+} from "../providers/model-settings-provider";
 
 /**
  * Props for the {@link DrawerSetting} component.
@@ -46,25 +50,6 @@ type DrawerSettingProps = {
    */
   onClose?: () => void;
 };
-
-/**
- * Resolves the default model variant for a given model family.
- *
- * This function ensures the settings form displays appropriate defaults
- * when the user switches between model families, keeping the UI aligned
- * with backend expectations.
- *
- * @param model - The model family to get the default variant for.
- * @returns The default variant string, or null for models without variants.
- *
- * @internal
- */
-function defaultVariantForModel(model: ModelKind): string | null {
-  if (model === "llm") return "gpt";
-  if (model === "transformer") return "roberta";
-  /* These models do not expose configurable variants. */
-  return null;
-}
 
 /**
  * Model family options displayed in the settings form.

@@ -72,25 +72,23 @@ export type ModelKind = "transformer" | "crf" | "lstm" | "lstm_crf" | "llm";
 /**
  * Available variants for LLM-based extraction models.
  *
- * These variants correspond to different large language model providers
- * or deployment configurations supported by the Backend API.
+ * The LLM service is GPT-only. This array is kept as a single-element tuple
+ * for forward compatibility (e.g., reintroducing alternative providers).
  *
- * - `claude` — Anthropic Claude models
- * - `gpt` — OpenAI GPT models
- * - `local` — Locally deployed open-source LLMs
+ * - `gpt` — OpenAI GPT (model identifier set in the backend, currently `gpt-5.4`)
  */
-export const LLM_VARIANTS = ["claude", "gpt", "local"] as const;
+export const LLM_VARIANTS = ["gpt"] as const;
 
 /**
  * Available variants for transformer-based extraction models.
  *
- * These variants correspond to different pre-trained transformer architectures
- * fine-tuned for clinical NER in Spanish medical text.
+ * The transformer service is RoBERTa-only (clinical Spanish biomedical RoBERTa
+ * served via Hugging Face Hub). This array is kept as a single-element tuple
+ * for forward compatibility.
  *
- * - `beto` — BETO (Spanish BERT) fine-tuned for clinical NER
- * - `roberta` — RoBERTa-based model for clinical entity extraction
+ * - `roberta` — `BSC-LT/roberta-base-biomedical-clinical-es` fine-tuned para NER clínico
  */
-export const TRANSFORMER_VARIANTS = ["beto", "roberta"] as const;
+export const TRANSFORMER_VARIANTS = ["roberta"] as const;
 
 /**
  * Type representing valid LLM variant values.
@@ -115,7 +113,7 @@ export type TransformerVariant = (typeof TRANSFORMER_VARIANTS)[number];
  *
  * @internal
  */
-function defaultVariantForModel(model: ModelKind): string | null {
+export function defaultVariantForModel(model: ModelKind): string | null {
   switch (model) {
     case "llm":
       return "gpt";
